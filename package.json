@@ -1,0 +1,23 @@
+{
+  "name": "fed-carehub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "expo": "^55.0.6",
+    "react": "^19.2.4",
+    "react-native": "^0.84.1",
+    "react-native-web": "^0.21.2"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.10",
+    "typescript": "~5.9.2"
+  }
+}

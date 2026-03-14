@@ -1,0 +1,40 @@
+import { StyleSheet } from "react-native";
+
+export default StyleSheet.create({
+  safeArea: { flex: 1 },
+  container: { padding: 16, paddingBottom: 32 },
+  title: { fontSize: 26, fontWeight: "700", marginBottom: 20, textAlign: "center" },
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+  card: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  headerCard: { flexDirection: "row", alignItems: "center", marginBottom: 8, gap: 8 },
+  sectionTitle: { fontSize: 18, fontWeight: "700" },
+  text: { fontSize: 16, marginBottom: 4 },
+  label: { fontWeight: "600" },
+  btnEdit: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginTop: 12,
+    gap: 6,
+  },
+  btnEditText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  btnLogout: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 10,
+    gap: 8,
+  },
+  btnLogoutText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+});
