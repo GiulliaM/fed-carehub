@@ -1,16 +1,28 @@
-
-// Configuração da API base pro frontend falar com o backend (tipo telefone sem fio, rs)
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Para pegar o token salvo
 
-// No computador (BFF) rodando na porta 3000
-export const API_URL = 'http://100.90.232.30:3000/api';
+// IP atualizado da VPS via Tailscale (vimos no ipconfig)
+export const API_URL = 'http://100.111.0.122:3000/api'; 
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 10000, // 10 segundos antes de mostrar Network Error
+  timeout: 10000, 
 });
 
-// Interceptor de erros para facilitar o debug
+// NOVO: Interceptor para colocar o TOKEN em todas as chamadas
+api.interceptors.request.use(async (config) => {
+  try {
+    const token = await AsyncStorage.getItem('@CareHub:token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {
+    console.error("[API] Erro ao buscar token no Storage", e);
+  }
+  return config;
+});
+
+// Seu interceptor de erros (mantido porque está ótimo!)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
