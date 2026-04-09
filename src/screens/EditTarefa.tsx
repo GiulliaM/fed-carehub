@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import api from "../utils/clienteApi";
+import api from "../config/api";
 import { useTema } from "../context/ThemeContext";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";

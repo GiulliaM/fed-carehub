@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
-import api from "../utils/clienteApi";
+import api from "../config/api";
 import { useTema } from "../context/ThemeContext";
 
 export default function EditMedicamento({ route, navigation }: any) {

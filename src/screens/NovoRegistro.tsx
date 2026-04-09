@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTema } from "../context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
-import api from "../utils/clienteApi";
+import api from "../config/api";
 import {
   CATALOGO_DIARIO,
   type DiarioCategoria,

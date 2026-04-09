@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../utils/clienteApi";
+import api from "../config/api";
 
 type ContatoEmergencia = { nome: string; parentesco: string; telefone: string };
 

@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
 import { useFocusEffect } from "@react-navigation/native";
-import api from "../utils/clienteApi";
+import api from "../config/api";
 
 const ESPECIALIDADES_SUGERIDAS = [
   "Alzheimer",

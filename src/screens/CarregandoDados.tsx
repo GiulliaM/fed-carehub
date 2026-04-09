@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTema } from "../context/ThemeContext";
-import api from "../utils/clienteApi";
+import api from "../config/api";
 
 export default function CarregandoDados({ navigation }: any) {
   const { cores } = useTema();

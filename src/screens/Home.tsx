@@ -16,7 +16,7 @@ import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import "dayjs/locale/pt-br";
-import api from "../utils/clienteApi";
+import api from "../config/api";
 import { termoPaciente } from "../utils/terminologia";
 
 dayjs.extend(isSameOrAfter);

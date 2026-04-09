@@ -17,7 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTema } from "../context/ThemeContext";
 import { sair, obterDadosUsuario } from "../utils/autenticacao";
 import { termoPaciente } from "../utils/terminologia";
-import api from "../utils/clienteApi";
+import api from "../config/api";
 
 export default function Perfil({ navigation }: any) {
   const [user, setUser] = useState<any>(null);

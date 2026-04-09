@@ -13,7 +13,7 @@ import { Calendar } from "react-native-calendars";
 import { useTema } from "../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import api from "../utils/clienteApi";
+import api from "../config/api";
 import { cancelarLembreteTarefa } from "../utils/notificacoes";
 import { Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";

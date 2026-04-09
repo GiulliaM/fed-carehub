@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../utils/clienteApi";
+import api from "../config/api";
 import { useTema } from "../context/ThemeContext";
 import { agendarLembreteTarefa, cancelarLembreteTarefa } from "../utils/notificacoes";
 import dayjs from "dayjs";
