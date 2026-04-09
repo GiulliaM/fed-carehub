@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "9cde6311-2a02-41c0-9518-6d9f98d0f29f"
+      }
+    },
+    "android": {
+      "package": "com.giulliam.fedcarehub"
+    }
+  }
+}
