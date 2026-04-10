@@ -1,12 +1,18 @@
 {
   "expo": {
+    "name": "CareHub",
+    "slug": "fed-carehub",
+    "version": "1.0.0",
+    "android": {
+      "package": "com.giulliam.fedcarehub",
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      }
+    },
     "extra": {
       "eas": {
         "projectId": "c44203f8-9a6b-4054-b2e0-bbf69ab2fd74"
       }
-    },
-    "android": {
-      "package": "com.giulliam.fedcarehub"
     }
   }
 }
