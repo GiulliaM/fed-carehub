@@ -5,10 +5,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
+import api from "../config/api";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 
@@ -17,6 +19,28 @@ dayjs.locale("pt-br");
 export default function DetalhesMedicamento({ route, navigation }: any) {
   const { cores, tf } = useTema();
   const { medicamento } = route.params;
+
+  const confirmarExclusao = () => {
+    Alert.alert(
+      "Excluir medicamento",
+      `Deseja excluir "${medicamento.nome}"? Esta ação não pode ser desfeita.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.delete(`/medicamentos/${medicamento.medicamento_id}`);
+              navigation.goBack();
+            } catch (err: any) {
+              Alert.alert("Erro", err?.response?.data?.message || "Não foi possível excluir o medicamento.");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   if (!medicamento) {
     return (
@@ -93,25 +117,27 @@ export default function DetalhesMedicamento({ route, navigation }: any) {
             </Text>
           </View>
 
+          {medicamento.dosagem && (
+            <InfoRow
+              icon="medical-outline"
+              label="Formato"
+              value={medicamento.dosagem}
+            />
+          )}
           {medicamento.mg && (
             <InfoRow
               icon="fitness-outline"
-              label="Miligramas"
-              value={`${medicamento.mg}mg`}
+              label="Concentração"
+              value={`${medicamento.mg}`}
             />
           )}
           {medicamento.qtd_comprimidos && (
             <InfoRow
-              icon="tablet-portrait-outline"
-              label="Comprimidos por dose"
-              value={`${medicamento.qtd_comprimidos}`}
+              icon="timer-outline"
+              label="Posologia"
+              value={`${medicamento.qtd_comprimidos} ${medicamento.dosagem === "Gotas" ? "gotas" : medicamento.dosagem === "Mililitros" ? "mL" : medicamento.dosagem === "Injecao" ? "mL" : medicamento.dosagem === "Pomada" ? "g" : "comprimido(s)"} por vez`}
             />
           )}
-          <InfoRow
-            icon="flask-outline"
-            label="Dosagem"
-            value={medicamento.dosagem}
-          />
           <InfoRow
             icon="time-outline"
             label="Horarios"
@@ -139,13 +165,13 @@ export default function DetalhesMedicamento({ route, navigation }: any) {
           )}
           <InfoRow
             icon="hourglass-outline"
-            label="Duracao"
+            label="Tratamento"
             value={
-              medicamento.duracao_days
-                ? `${medicamento.duracao_days} dias`
-                : medicamento.uso_continuo
-                ? "Uso continuo"
-                : ""
+              medicamento.uso_continuo
+                ? "Contínuo"
+                : medicamento.duracao_days
+                ? `Temporário — ${medicamento.duracao_days} dias`
+                : "Temporário"
             }
           />
           {medicamento.intervalo_horas && (
@@ -173,6 +199,15 @@ export default function DetalhesMedicamento({ route, navigation }: any) {
         >
           <Ionicons name="create-outline" size={18} color="#fff" />
           <Text style={styles.btnActionText}>Editar medicamento</Text>
+        </TouchableOpacity>
+
+        {/* Botao Excluir */}
+        <TouchableOpacity
+          style={[styles.btnAction, { backgroundColor: cores.danger }]}
+          onPress={confirmarExclusao}
+        >
+          <Ionicons name="trash-outline" size={18} color="#fff" />
+          <Text style={styles.btnActionText}>Excluir medicamento</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

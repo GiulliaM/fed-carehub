@@ -41,8 +41,8 @@ export default function Tarefas({ navigation }: any) {
       if (!paciente?.paciente_id) {
         try {
           const pacienteRes = await api.get("/pacientes");
-          if (Array.isArray(pacienteRes) && pacienteRes.length > 0) {
-            paciente = pacienteRes[0];
+          if (Array.isArray(pacienteRes.data) && pacienteRes.data.length > 0) {
+            paciente = pacienteRes.data[0];
             await AsyncStorage.setItem("paciente", JSON.stringify(paciente));
           }
         } catch {}
@@ -57,13 +57,13 @@ export default function Tarefas({ navigation }: any) {
       const data = await api.get(
         `/tarefas?paciente_id=${paciente.paciente_id}`
       );
-      if (!Array.isArray(data)) {
+      if (!Array.isArray(data.data)) {
         setTarefas([]);
         setCarregando(false);
         return;
       }
 
-      const tarefasCorrigidas = data.map((t: any) => ({
+      const tarefasCorrigidas = data.data.map((t: any) => ({
         ...t,
         data: normalizar(t.data),
         concluida: t.concluida === 1 ? 1 : 0,

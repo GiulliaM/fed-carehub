@@ -14,6 +14,7 @@ import coresPadrao from "../config/cores";
 import { useTema } from "../context/ThemeContext";
 import { API_URL } from "../config/api";
 import { obterToken } from "../utils/autenticacao";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function EditarUsuario({ route, navigation }: any) {
   const { cores } = useTema();
@@ -42,20 +43,16 @@ export default function EditarUsuario({ route, navigation }: any) {
 
   const carregarUsuario = async () => {
     try {
-      const token = await obterToken();
-      const res = await fetch(`${API_URL}/usuarios/perfil`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
-
-      if (res.ok) {
-        setUsuario(json);
-        setNome(json.nome || "");
-        setEmail(json.email || "");
-        setTelefone(json.telefone || "");
+      // Lê do AsyncStorage — os dados são salvos no login/cadastro e ficam atualizados
+      const raw = await AsyncStorage.getItem("usuario");
+      const u = raw ? JSON.parse(raw) : null;
+      if (u) {
+        setUsuario(u);
+        setNome(u.nome || "");
+        setEmail(u.email || "");
+        setTelefone(u.telefone || "");
       } else {
-        console.error(json);
-        Alert.alert("Erro", "Falha ao carregar dados do usuário.");
+        Alert.alert("Erro", "Faça login novamente para editar seu perfil.");
       }
     } catch (error) {
       console.error("Erro ao carregar usuário:", error);
@@ -93,6 +90,11 @@ export default function EditarUsuario({ route, navigation }: any) {
         console.error(json);
         return Alert.alert("Erro", json.message || "Erro ao atualizar usuário.");
       }
+
+      // Persiste as alterações localmente para que outros screens as vejam imediatamente
+      const raw = await AsyncStorage.getItem("usuario");
+      const storedUser = raw ? JSON.parse(raw) : {};
+      await AsyncStorage.setItem("usuario", JSON.stringify({ ...storedUser, nome, email, telefone: telefone.trim() || null }));
 
       Alert.alert("Sucesso", "Informações atualizadas com sucesso!");
       navigation.goBack();

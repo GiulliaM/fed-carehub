@@ -48,8 +48,8 @@ export default function CarregandoDados({ navigation }: any) {
       let paciente = null;
       try {
         const pacienteRes = await api.get("/pacientes");
-        if (Array.isArray(pacienteRes) && pacienteRes.length > 0) {
-          paciente = pacienteRes[0];
+        if (Array.isArray(pacienteRes.data) && pacienteRes.data.length > 0) {
+          paciente = pacienteRes.data[0];
           await AsyncStorage.setItem("paciente", JSON.stringify(paciente));
           console.log("Patient loaded:", paciente.nome);
         } else {

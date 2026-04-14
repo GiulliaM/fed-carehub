@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -45,8 +46,8 @@ export default function Diario({ navigation }: any) {
       const url = paciente?.paciente_id
         ? `/diario?paciente_id=${paciente.paciente_id}`
         : "/diario";
-      const data = await api.get(url);
-      setRegistros(Array.isArray(data) ? data : []);
+      const res = await api.get(url);
+      setRegistros(Array.isArray(res.data) ? res.data : []);
     } catch {
       setRegistros([]);
     } finally {
@@ -59,6 +60,28 @@ export default function Diario({ navigation }: any) {
       fetchRegistros();
     }, [fetchRegistros])
   );
+
+  const confirmarExclusao = (registroId: number) => {
+    Alert.alert(
+      "Excluir registro",
+      "Deseja excluir este registro do diário? Esta ação não pode ser desfeita.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.delete(`/diario/${registroId}`);
+              setRegistros((prev) => prev.filter((r) => r.registro_id !== registroId));
+            } catch (err: any) {
+              Alert.alert("Erro", err?.response?.data?.message || "Não foi possível excluir o registro.");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView
@@ -113,7 +136,7 @@ export default function Diario({ navigation }: any) {
                 ]}
               >
                 <View style={styles.cardHeader}>
-                  <View>
+                  <View style={{ flex: 1 }}>
                     <Text
                       style={[
                         styles.cardDate,
@@ -134,11 +157,20 @@ export default function Diario({ navigation }: any) {
                         : ""}
                     </Text>
                   </View>
-                  <Ionicons
-                    name="journal-outline"
-                    size={22}
-                    color={cores.primary}
-                  />
+                  <View style={{ flexDirection: "row", gap: 12 }}>
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate("NovoRegistro", { registro: item })}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Ionicons name="create-outline" size={20} color={cores.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => confirmarExclusao(item.registro_id)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Ionicons name="trash-outline" size={20} color={cores.muted} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 {/* Itens categorizados */}

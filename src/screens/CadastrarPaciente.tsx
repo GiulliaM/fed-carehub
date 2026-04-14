@@ -15,8 +15,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../config/api";
 import { obterToken } from "../utils/autenticacao";
 
-export default function CadastrarPaciente({ navigation }: any) {
+export default function CadastrarPaciente({ route, navigation }: any) {
   const { cores } = useTema();
+  const primeiroAcesso = route.params?.primeiroAcesso ?? false;
 
   // Campos do paciente
   const [nome, setNome] = useState("");
@@ -78,6 +79,11 @@ export default function CadastrarPaciente({ navigation }: any) {
       style={[styles.safeArea, { backgroundColor: cores.background }]}
     >
       <ScrollView contentContainerStyle={styles.container}>
+        {primeiroAcesso && (
+          <Text style={[styles.boasVindas, { color: cores.muted }]}>
+            Bem-vindo(a) ao CareHub! Para começar, cadastre a pessoa que você vai cuidar.
+          </Text>
+        )}
         <Text style={[styles.title, { color: cores.primary }]}>
           Cadastrar Paciente
         </Text>
@@ -131,6 +137,12 @@ export default function CadastrarPaciente({ navigation }: any) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: coresPadrao.background },
   container: { flexGrow: 1, padding: 16, justifyContent: "center" },
+  boasVindas: {
+    fontSize: 15,
+    textAlign: "center",
+    marginBottom: 12,
+    lineHeight: 22,
+  },
   title: {
     fontSize: 24,
     fontWeight: "700",

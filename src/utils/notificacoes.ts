@@ -4,10 +4,12 @@
  */
 // Serviço pra mandar notificação no celular avisando das tarefas, tipo "ei, não esquece!"
 import AsyncStorage from "@react-native-async-storage/async-storage";
+//import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 
 const CANAL_ID = "carehub-lembretes";
 const PREF_ATIVO = "notificacoes_lembrete_ativo";
-
+/*
 // Nome do som customizado (arquivo em assets/sounds/notificacao.mp3 ou .wav)
 // No Android o canal usa este nome quando o arquivo está em res/raw/notificacao
 export const NOME_SOM_NOTIFICACAO = "notificacao";
@@ -25,9 +27,7 @@ export async function setNotificacoesLembreteAtivas(ativo: boolean): Promise<voi
   await AsyncStorage.setItem(PREF_ATIVO, ativo ? "true" : "false");
 }
 
-/**
- * Pede permissão e configura o canal (Android) com som.
- */
+
 export async function configurarCanal(): Promise<boolean> {
   const { status: existing } = await Notifications.getPermissionsAsync();
   let final = existing;
@@ -47,10 +47,7 @@ export async function configurarCanal(): Promise<boolean> {
   return true;
 }
 
-/**
- * Agenda um lembrete para a data/hora da tarefa.
- * identifier: use "tarefa_" + tarefa_id para poder cancelar depois.
- */
+
 export async function agendarLembreteTarefa(
   tarefaId: number,
   titulo: string,
@@ -92,16 +89,11 @@ export async function agendarLembreteTarefa(
   return id;
 }
 
-/**
- * Cancela o lembrete agendado de uma tarefa (ex.: ao excluir ou marcar concluída).
- */
 export async function cancelarLembreteTarefa(tarefaId: number): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync("tarefa_" + tarefaId);
 }
 
-/**
- * Cancela todos os lembretes de tarefas (útil ao desativar notificações).
- */
+
 export async function cancelarTodosLembretes(): Promise<void> {
   const pendentes = await Notifications.getAllScheduledNotificationsAsync();
   for (const n of pendentes) {
@@ -110,3 +102,5 @@ export async function cancelarTodosLembretes(): Promise<void> {
     }
   }
 }
+
+*/

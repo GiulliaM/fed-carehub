@@ -56,8 +56,8 @@ export default function Medicamentos({ navigation }: any) {
       if (!paciente?.paciente_id) {
         try {
           const pacienteRes = await api.get("/pacientes");
-          if (Array.isArray(pacienteRes) && pacienteRes.length > 0) {
-            paciente = pacienteRes[0];
+          if (Array.isArray(pacienteRes.data) && pacienteRes.data.length > 0) {
+            paciente = pacienteRes.data[0];
             await AsyncStorage.setItem("paciente", JSON.stringify(paciente));
           }
         } catch {}
@@ -72,7 +72,7 @@ export default function Medicamentos({ navigation }: any) {
       const response = await api.get(
         `/medicamentos/${paciente.paciente_id}`
       );
-      setMedicamentos(Array.isArray(response) ? response : []);
+      setMedicamentos(Array.isArray(response.data) ? response.data : []);
     } catch {
       Alert.alert("Erro", "Nao foi possivel carregar os medicamentos.");
     } finally {

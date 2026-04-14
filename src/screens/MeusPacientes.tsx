@@ -31,7 +31,7 @@ export default function MeusPacientes({ navigation }: any) {
     try {
       setCarregando(true);
       const res = await api.get("/vinculos/meus-pacientes");
-      setLista(Array.isArray(res) ? res : []);
+      setLista(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
       if (err?.response?.status === 403) {
         Alert.alert("Acesso negado", "Esta área é apenas para cuidadores.");

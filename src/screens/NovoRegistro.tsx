@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -25,8 +25,11 @@ interface SelectedItem {
   valor: string | null;
 }
 
-export default function NovoRegistro({ navigation }: any) {
+export default function NovoRegistro({ navigation, route }: any) {
   const { cores, tf } = useTema();
+  const registroExistente = route?.params?.registro ?? null;
+  const modoEdicao = !!registroExistente;
+
   const [comentario, setComentario] = useState("");
   const [selecionados, setSelecionados] = useState<SelectedItem[]>([]);
   const [expandedCat, setExpandedCat] = useState<DiarioCategoria | null>(
@@ -37,6 +40,30 @@ export default function NovoRegistro({ navigation }: any) {
     Record<string, number>
   >({});
   const [salvando, setSalvando] = useState(false);
+
+  // Pré-preenche o estado quando abre em modo de edição
+  useEffect(() => {
+    if (!registroExistente) return;
+    setComentario(registroExistente.comentario || "");
+    if (Array.isArray(registroExistente.itens)) {
+      const itensIniciais: SelectedItem[] = registroExistente.itens.map((i: any) => ({
+        categoria: i.categoria as DiarioCategoria,
+        codigo: i.codigo,
+        valor: i.valor ?? null,
+      }));
+      setSelecionados(itensIniciais);
+      const campos: Record<string, string> = {};
+      const contagens: Record<string, number> = {};
+      registroExistente.itens.forEach((i: any) => {
+        const catItem = CATALOGO_DIARIO.find((c) => c.key === i.categoria)
+          ?.itens.find((it) => it.codigo === i.codigo);
+        if (catItem?.temCampo && i.valor) campos[i.codigo] = i.valor;
+        if (catItem?.contagem && i.valor) contagens[i.codigo] = parseInt(i.valor) || 0;
+      });
+      setCampoValues(campos);
+      setContagemValues(contagens);
+    }
+  }, []);
 
   const estaSelecionado = (categoria: DiarioCategoria, codigo: string) =>
     selecionados.some(
@@ -89,15 +116,22 @@ export default function NovoRegistro({ navigation }: any) {
         return { categoria: s.categoria, codigo: s.codigo, valor };
       });
 
-      await api.post("/diario", {
-        data: hoje.toISOString().split("T")[0],
-        hora: hoje.toTimeString().split(" ")[0],
-        comentario: comentario.trim() || null,
-        paciente_id: paciente.paciente_id,
-        itens,
-      });
-
-      Alert.alert("Sucesso", "Registro adicionado!");
+      if (modoEdicao) {
+        await api.patch(`/diario/${registroExistente.registro_id}`, {
+          comentario: comentario.trim() || null,
+          itens,
+        });
+        Alert.alert("Sucesso", "Registro atualizado!");
+      } else {
+        await api.post("/diario", {
+          data: hoje.toISOString().split("T")[0],
+          hora: hoje.toTimeString().split(" ")[0],
+          comentario: comentario.trim() || null,
+          paciente_id: paciente.paciente_id,
+          itens,
+        });
+        Alert.alert("Sucesso", "Registro adicionado!");
+      }
       navigation.goBack();
     } catch (err) {
       console.error(err);
@@ -118,7 +152,7 @@ export default function NovoRegistro({ navigation }: any) {
             { color: cores.primary, fontSize: tf(24) },
           ]}
         >
-          Novo Registro
+          {modoEdicao ? "Editar Registro" : "Novo Registro"}
         </Text>
 
         {/* Categorias com acordeao */}

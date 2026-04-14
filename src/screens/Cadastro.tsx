@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
@@ -60,7 +62,13 @@ export default function Cadastro({ navigation }: any) {
         };
         await AsyncStorage.setItem("usuario", JSON.stringify(userData));
         console.log("Cadastro concluido:", userData);
-        navigation.reset({ index: 0, routes: [{ name: "Abas" }] });
+
+        // Direciona pelo tipo: familiar cria paciente, cuidador vincula via código
+        if ((res.data?.usuario?.tipo || tipo) === "familiar") {
+          navigation.reset({ index: 0, routes: [{ name: "CadastrarPaciente", params: { primeiroAcesso: true } }] });
+        } else {
+          navigation.reset({ index: 0, routes: [{ name: "MeusPacientes" }] });
+        }
       }
     } catch (err: any) {
       console.error("[Cadastro] Erro:", err);
@@ -77,7 +85,12 @@ export default function Cadastro({ navigation }: any) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: cores.background }}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={[styles.title, { color: cores.primary }]}>Crie sua conta</Text>
 
         <TextInput
@@ -154,6 +167,7 @@ export default function Cadastro({ navigation }: any) {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

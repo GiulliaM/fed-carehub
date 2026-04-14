@@ -4,8 +4,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Definindo as chaves como constantes para evitar erros de digitação e padronizar com o api.ts
 const TOKEN_KEY = "@CareHub:token";
-const USER_KEY = "@CareHub:usuario";
-const PATIENT_KEY = "@CareHub:paciente";
+const USER_KEY = "usuario";
+const PATIENT_KEY = "paciente";
 
 export async function salvarToken(token: string) {
   try {
@@ -28,7 +28,7 @@ export async function obterToken(): Promise<string | null> {
 export async function sair() {
   try {
     // Remove o token, utilizador e paciente da sessão de uma só vez
-    await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY, PATIENT_KEY]);
+    await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY, PATIENT_KEY, "paciente_ativo_id"]);
     console.log("Sessao encerrada, storage limpo");
   } catch (e) {
     console.error("Erro ao remover dados da sessao:", e);

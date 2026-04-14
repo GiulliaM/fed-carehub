@@ -30,20 +30,20 @@ export default function VincularCuidador({ route, navigation }: any) {
     try {
       setCarregando(true);
       const list = await api.get("/pacientes");
-      setPacientes(Array.isArray(list) ? list : []);
+      setPacientes(Array.isArray(list.data) ? list.data : []);
       const p = route.params?.paciente;
       if (p?.paciente_id) {
         setPaciente(p);
         const convite = await api.get(`/vinculos/convite/${p.paciente_id}`);
-        if (convite?.codigo) {
-          setCodigo(convite.codigo);
-          setExpiraEm(convite.expira_em || "");
+        if (convite?.data?.codigo) {
+          setCodigo(convite.data.codigo);
+          setExpiraEm(convite.data.expira_em || "");
         } else {
           setCodigo("");
           setExpiraEm("");
         }
-      } else if (Array.isArray(list) && list.length > 0) {
-        setPaciente(list[0]);
+      } else if (Array.isArray(list.data) && list.data.length > 0) {
+        setPaciente(list.data[0]);
         setCodigo("");
         setExpiraEm("");
       } else {
@@ -75,8 +75,8 @@ export default function VincularCuidador({ route, navigation }: any) {
     try {
       setGerando(true);
       const res = await api.post("/vinculos/gerar-convite", { paciente_id: p.paciente_id });
-      setCodigo(res.codigo || "");
-      setExpiraEm(res.expira_em || "");
+      setCodigo(res.data.codigo || "");
+      setExpiraEm(res.data.expira_em || "");
       Alert.alert("Código gerado", "O cuidador deve digitar este código em \"Meus pacientes\" antes de expirar.");
     } catch (err: any) {
       Alert.alert("Erro", err?.response?.data?.message || "Não foi possível gerar o código.");

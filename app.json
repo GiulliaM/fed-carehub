@@ -3,6 +3,10 @@
     "name": "CareHub",
     "slug": "fed-carehub",
     "version": "1.0.0",
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "NEVER"
+    },
     "android": {
       "package": "com.giulliam.fedcarehub",
       "adaptiveIcon": {
@@ -13,6 +17,9 @@
       "eas": {
         "projectId": "c44203f8-9a6b-4054-b2e0-bbf69ab2fd74"
       }
-    }
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
   }
 }

@@ -55,7 +55,7 @@ export default function NavegadorRaiz() {
 
   return (
     <NavigationContainer ref={referenciaNavegacao}>
-      <Stack.Navigator initialRouteName="BoasVindas">
+      <Stack.Navigator id="RootStack" initialRouteName="BoasVindas">
         <Stack.Screen name="BoasVindas" component={BoasVindas} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
         <Stack.Screen name="Cadastro" component={Cadastro} options={{ headerShown: false }} />

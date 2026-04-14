@@ -53,7 +53,7 @@ export default function Home({ navigation }: any) {
       }
 
       const listaPacientes = await api.get("/pacientes");
-      const lista = Array.isArray(listaPacientes) ? listaPacientes : [];
+      const lista = Array.isArray(listaPacientes.data) ? listaPacientes.data : [];
       setPacientes(lista);
 
       if (lista.length > 0) {
@@ -85,14 +85,14 @@ export default function Home({ navigation }: any) {
         api.get(`/medicamentos/${pacienteAtivo.paciente_id}`),
       ]);
 
-      const tarefasHoje = (tarefas || []).filter(
+      const tarefasHoje = (Array.isArray(tarefas.data) ? tarefas.data : []).filter(
         (t: any) => t.data === hoje
       );
       const tarefasConcluidas = tarefasHoje.filter(
         (t: any) => t.concluida === 1
       ).length;
 
-      const medHoje = (med || []).filter((m: any) => {
+      const medHoje = (Array.isArray(med.data) ? med.data : []).filter((m: any) => {
         if (!m.inicio) return false;
         const di = dayjs(m.inicio);
         if (m.uso_continuo == 1) return dayjs(hoje).isSameOrAfter(di, "day");
@@ -122,7 +122,7 @@ export default function Home({ navigation }: any) {
         const membros = await api.get(
           `/grupo/membros/${pacienteAtivo.paciente_id}`
         );
-        setMembrosGrupo(Array.isArray(membros) ? membros : []);
+        setMembrosGrupo(Array.isArray(membros.data) ? membros.data : []);
       } catch {
         setMembrosGrupo([]);
       }
