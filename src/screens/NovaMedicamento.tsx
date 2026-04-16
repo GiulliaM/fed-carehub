@@ -249,7 +249,7 @@ export default function NovaMedicamento({ navigation }: any) {
           )}
 
           {/* Horários */}
-          <Text style={[styles.fieldLabel, { color: cores.text, fontSize: tf(14), marginTop: 10 }]}>
+          <Text style={[styles.fieldLabel, { color: cores.text, fontSize: tf(14), marginTop: 4 }]}>
             Horários {horarios.length > 0 ? `(${horarios.length})` : ""}
           </Text>
 

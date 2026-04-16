@@ -1,32 +1,106 @@
 import React, { useState } from "react";
 import {
-  View,
+  Text,
   TextInput,
   TouchableOpacity,
-  Text,
   StyleSheet,
   Alert,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import coresPadrao from "../config/cores";
+import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../config/api";
 import { obterToken } from "../utils/autenticacao";
 
+// ─── Catálogo de categorias de cuidado ───────────────────────────────────────
+
+const CATEGORIAS_CUIDADO = [
+  {
+    key: "fisicas",
+    label: "Físicas e Motoras",
+    icon: "body-outline",
+    itens: [
+      { value: "independente", label: "Independente" },
+      { value: "mobilidade_reduzida", label: "Mobilidade reduzida" },
+      { value: "cadeirante", label: "Cadeirante" },
+      { value: "acamado", label: "Acamado" },
+      { value: "risco_queda", label: "Risco de queda" },
+      { value: "mudanca_decubito", label: "Mudança de decúbito" },
+    ],
+  },
+  {
+    key: "cognitivas",
+    label: "Cognitivas e Mentais",
+    icon: "brain-outline" as any,
+    itens: [
+      { value: "lucido_orientado", label: "Lúcido e orientado" },
+      { value: "alzheimer_demencia", label: "Alzheimer / Demência" },
+      { value: "confusao_mental", label: "Confusão mental" },
+      { value: "agitacao_agressividade", label: "Agitação / Agressividade" },
+      { value: "depressao_apatia", label: "Depressão / Apatia" },
+      { value: "parkinson", label: "Parkinson" },
+    ],
+  },
+  {
+    key: "sensoriais",
+    label: "Sensoriais",
+    icon: "ear-outline",
+    itens: [
+      { value: "def_visual", label: "Deficiência visual" },
+      { value: "def_auditiva", label: "Deficiência auditiva" },
+      { value: "afasia", label: "Afasia (dif. de fala)" },
+      { value: "disfagia", label: "Disfagia (engasgo)" },
+    ],
+  },
+  {
+    key: "dependencias",
+    label: "Dependências e Suporte",
+    icon: "medkit-outline",
+    itens: [
+      { value: "uso_fraldas", label: "Uso de fraldas" },
+      { value: "sonda_alimentar", label: "Sonda alimentar" },
+      { value: "sonda_vesical", label: "Sonda vesical" },
+      { value: "oxigenoterapia", label: "Oxigenoterapia" },
+      { value: "glicemia_insulina", label: "Glicemia / Insulina" },
+      { value: "curativos_complexos", label: "Curativos complexos" },
+    ],
+  },
+];
+
+// ─── Componente ───────────────────────────────────────────────────────────────
+
 export default function CadastrarPaciente({ route, navigation }: any) {
-  const { cores } = useTema();
+  const { cores, tf } = useTema();
   const primeiroAcesso = route.params?.primeiroAcesso ?? false;
 
-  // Campos do paciente
+  // Bloco 1 — Identificação
   const [nome, setNome] = useState("");
-  const [idade, setIdade] = useState("");
   const [genero, setGenero] = useState("");
-  const [observacoes, setObservacoes] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
+  const [responsavelLegal, setResponsavelLegal] = useState("");
+  const [telefoneContato, setTelefoneContato] = useState("");
+
+  // Bloco 2 — Categorias de cuidado
+  const [categorias, setCategorias] = useState<string[]>([]);
+  const [expandedCat, setExpandedCat] = useState<string | null>("fisicas");
+
+  // Bloco 3 — Observações
+  const [restricoes, setRestricoes] = useState("");
+  const [observacoesRotina, setObservacoesRotina] = useState("");
+
+  const toggleCategoria = (value: string) => {
+    setCategorias((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
 
   const cadastrar = async () => {
-    if (!nome) return Alert.alert("Erro", "Informe o nome do paciente.");
+    if (!nome.trim()) return Alert.alert("Atenção", "Informe o nome do paciente.");
 
     try {
       const token = await obterToken();
@@ -37,138 +111,288 @@ export default function CadastrarPaciente({ route, navigation }: any) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          nome,
-          idade: idade || null,
-          genero: genero || null,
-          observacoes: observacoes || null,
+          nome: nome.trim(),
+          genero: genero.trim() || null,
+          data_nascimento: dataNascimento.trim() || null,
+          responsavel_legal: responsavelLegal.trim() || null,
+          telefone_contato: telefoneContato.trim() || null,
+          categorias_cuidado: categorias.length > 0 ? categorias : null,
+          restricoes_alimentares: restricoes.trim() || null,
+          observacoes_rotina: observacoesRotina.trim() || null,
         }),
       });
 
       const json = await res.json();
       if (!res.ok) {
-        console.error(json);
         return Alert.alert("Erro", json.message || "Erro ao cadastrar paciente.");
       }
 
-      // Salva o paciente no AsyncStorage (para acesso rápido)
-      try {
-        await AsyncStorage.setItem(
-          "paciente",
-          JSON.stringify({
-            paciente_id: json.paciente_id,
-            nome,
-            idade,
-            genero,
-            observacoes,
-          })
-        );
-      } catch (e) {
-        console.warn("Falha ao salvar paciente localmente:", e);
-      }
+      await AsyncStorage.setItem(
+        "paciente",
+        JSON.stringify({
+          paciente_id: json.paciente_id,
+          nome: nome.trim(),
+          genero: genero.trim() || null,
+          data_nascimento: dataNascimento.trim() || null,
+          responsavel_legal: responsavelLegal.trim() || null,
+          telefone_contato: telefoneContato.trim() || null,
+          categorias_cuidado: categorias,
+          restricoes_alimentares: restricoes.trim() || null,
+          observacoes_rotina: observacoesRotina.trim() || null,
+        })
+      );
 
       Alert.alert("Sucesso", "Paciente cadastrado com sucesso!");
       navigation.reset({ index: 0, routes: [{ name: "Abas" }] });
-    } catch (error) {
-      console.error(error);
+    } catch {
       Alert.alert("Erro", "Falha ao conectar com o servidor.");
     }
   };
 
+  // ─── Renderização ────────────────────────────────────────────────────────────
+
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: cores.background }]}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        {primeiroAcesso && (
-          <Text style={[styles.boasVindas, { color: cores.muted }]}>
-            Bem-vindo(a) ao CareHub! Para começar, cadastre a pessoa que você vai cuidar.
-          </Text>
-        )}
-        <Text style={[styles.title, { color: cores.primary }]}>
-          Cadastrar Paciente
-        </Text>
-
-        {/* Nome */}
-        <TextInput
-          placeholder="Nome do paciente"
-          value={nome}
-          onChangeText={setNome}
-          style={styles.input}
-        />
-
-        {/* Idade */}
-        <TextInput
-          placeholder="Idade"
-          value={idade}
-          onChangeText={setIdade}
-          keyboardType="numeric"
-          style={styles.input}
-        />
-
-        {/* Gênero */}
-        <TextInput
-          placeholder="Gênero (Masculino, Feminino, Outro)"
-          value={genero}
-          onChangeText={setGenero}
-          style={styles.input}
-        />
-
-        {/* Observações */}
-        <TextInput
-          placeholder="Observações (condições, cuidados, anotações...)"
-          value={observacoes}
-          onChangeText={setObservacoes}
-          multiline
-          numberOfLines={4}
-          style={[styles.input, styles.textArea]}
-        />
-
-        <TouchableOpacity
-          style={[styles.btn, { backgroundColor: cores.primary }]}
-          onPress={cadastrar}
+    <SafeAreaView style={[styles.safe, { backgroundColor: cores.background }]}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.btnText}>Salvar Paciente</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          {primeiroAcesso && (
+            <Text style={[styles.boasVindas, { color: cores.muted, fontSize: tf(14) }]}>
+              Bem-vindo(a) ao CareHub! Cadastre agora a pessoa que você vai cuidar.
+            </Text>
+          )}
+
+          <Text style={[styles.title, { color: cores.primary, fontSize: tf(22) }]}>
+            Cadastrar Paciente
+          </Text>
+
+          {/* ── Bloco 1: Identificação ─────────────────────────────── */}
+          <SectionCard icon="person-outline" label="Identificação" cores={cores} tf={tf}>
+            <TextInput
+              style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+              placeholder="Nome completo *"
+              placeholderTextColor={cores.inputPlaceholder}
+              value={nome}
+              onChangeText={setNome}
+            />
+            <TextInput
+              style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+              placeholder="Gênero (Masculino, Feminino, Outro)"
+              placeholderTextColor={cores.inputPlaceholder}
+              value={genero}
+              onChangeText={setGenero}
+            />
+            <TextInput
+              style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+              placeholder="Data de nascimento (AAAA-MM-DD)"
+              placeholderTextColor={cores.inputPlaceholder}
+              value={dataNascimento}
+              onChangeText={setDataNascimento}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+              placeholder="Responsável legal (nome)"
+              placeholderTextColor={cores.inputPlaceholder}
+              value={responsavelLegal}
+              onChangeText={setResponsavelLegal}
+            />
+            <TextInput
+              style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+              placeholder="Telefone de contato"
+              placeholderTextColor={cores.inputPlaceholder}
+              value={telefoneContato}
+              onChangeText={setTelefoneContato}
+              keyboardType="phone-pad"
+            />
+          </SectionCard>
+
+          {/* ── Bloco 2: Categorias de cuidado ────────────────────── */}
+          <SectionCard icon="heart-outline" label="Categorias de Cuidado" cores={cores} tf={tf}>
+            <Text style={[styles.catSubtitle, { color: cores.muted, fontSize: tf(13) }]}>
+              Selecione todas que se aplicam ao paciente
+            </Text>
+            {CATEGORIAS_CUIDADO.map((cat) => {
+              const isExpanded = expandedCat === cat.key;
+              const qtdSelecionados = cat.itens.filter((i) => categorias.includes(i.value)).length;
+              return (
+                <View key={cat.key} style={{ marginBottom: 6 }}>
+                  <TouchableOpacity
+                    style={[styles.catHeader, { backgroundColor: cores.card, borderColor: cores.border }]}
+                    onPress={() => setExpandedCat(isExpanded ? null : cat.key)}
+                  >
+                    <Ionicons name={cat.icon as any} size={20} color={cores.primary} />
+                    <Text style={[styles.catLabel, { color: cores.text, fontSize: tf(14) }]}>
+                      {cat.label}
+                    </Text>
+                    {qtdSelecionados > 0 && (
+                      <View style={[styles.badge, { backgroundColor: cores.primary }]}>
+                        <Text style={styles.badgeText}>{qtdSelecionados}</Text>
+                      </View>
+                    )}
+                    <Ionicons
+                      name={isExpanded ? "chevron-up" : "chevron-down"}
+                      size={18}
+                      color={cores.muted}
+                      style={{ marginLeft: "auto" }}
+                    />
+                  </TouchableOpacity>
+                  {isExpanded && (
+                    <View style={[styles.catBody, { backgroundColor: cores.card, borderColor: cores.border }]}>
+                      {cat.itens.map((item) => {
+                        const ativo = categorias.includes(item.value);
+                        return (
+                          <TouchableOpacity
+                            key={item.value}
+                            style={[
+                              styles.checkRow,
+                              {
+                                backgroundColor: ativo ? cores.primary + "15" : "transparent",
+                                borderColor: ativo ? cores.primary : cores.border,
+                              },
+                            ]}
+                            onPress={() => toggleCategoria(item.value)}
+                          >
+                            <Ionicons
+                              name={ativo ? "checkbox" : "square-outline"}
+                              size={20}
+                              color={ativo ? cores.primary : cores.muted}
+                            />
+                            <Text style={[styles.checkLabel, { color: cores.text, fontSize: tf(14) }]}>
+                              {item.label}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </SectionCard>
+
+          {/* ── Bloco 3: Observações ───────────────────────────────── */}
+          <SectionCard icon="document-text-outline" label="Observações" cores={cores} tf={tf}>
+            <TextInput
+              style={[styles.input, styles.textArea, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+              placeholder="Restrições alimentares"
+              placeholderTextColor={cores.inputPlaceholder}
+              value={restricoes}
+              onChangeText={setRestricoes}
+              multiline
+            />
+            <TextInput
+              style={[styles.input, styles.textArea, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+              placeholder="Observações da rotina (cuidados, horários, preferências...)"
+              placeholderTextColor={cores.inputPlaceholder}
+              value={observacoesRotina}
+              onChangeText={setObservacoesRotina}
+              multiline
+            />
+          </SectionCard>
+
+          {/* ── Botão salvar ───────────────────────────────────────── */}
+          <TouchableOpacity
+            style={[styles.btnSalvar, { backgroundColor: cores.primary }]}
+            onPress={cadastrar}
+          >
+            <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+            <Text style={[styles.btnSalvarText, { fontSize: tf(16) }]}>Salvar Paciente</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
+// ─── Sub-componente de bloco ─────────────────────────────────────────────────
+
+function SectionCard({ icon, label, children, cores, tf }: any) {
+  return (
+    <View style={[styles.sectionCard, { backgroundColor: cores.card, borderColor: cores.border }]}>
+      <View style={styles.sectionHeader}>
+        <Ionicons name={icon} size={20} color={cores.primary} />
+        <Text style={[styles.sectionLabel, { color: cores.text, fontSize: tf(15) }]}>{label}</Text>
+      </View>
+      {children}
+    </View>
+  );
+}
+
+// ─── Estilos ─────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: coresPadrao.background },
-  container: { flexGrow: 1, padding: 16, justifyContent: "center" },
-  boasVindas: {
-    fontSize: 15,
-    textAlign: "center",
-    marginBottom: 12,
-    lineHeight: 22,
+  safe: { flex: 1 },
+  container: { padding: 16, paddingBottom: 40 },
+  boasVindas: { textAlign: "center", marginBottom: 12, lineHeight: 22 },
+  title: { fontWeight: "700", textAlign: "center", marginBottom: 20 },
+  sectionCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 14,
+    gap: 10,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: coresPadrao.primary,
-    marginBottom: 16,
-    textAlign: "center",
-  },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
+  sectionLabel: { fontWeight: "700" },
   input: {
-    backgroundColor: "#fff",
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 12,
+    fontSize: 15,
+  },
+  textArea: { minHeight: 80, textAlignVertical: "top" },
+  catSubtitle: { marginBottom: 4 },
+  catHeader: {
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     borderRadius: 10,
-    marginTop: 8,
     borderWidth: 1,
-    borderColor: "#ddd",
-    fontSize: 16,
+    gap: 8,
   },
-  textArea: {
-    height: 100,
-    textAlignVertical: "top",
-  },
-  btn: {
-    backgroundColor: coresPadrao.primary,
-    padding: 14,
+  catLabel: { fontWeight: "600" },
+  badge: {
+    minWidth: 20,
+    height: 20,
     borderRadius: 10,
-    marginTop: 16,
     alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 5,
   },
-  btnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  badgeText: { color: "#fff", fontSize: 11, fontWeight: "700" },
+  catBody: {
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    padding: 8,
+    gap: 6,
+    marginTop: -4,
+  },
+  checkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  checkLabel: { fontWeight: "500" },
+  btnSalvar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    borderRadius: 14,
+    gap: 8,
+    marginTop: 4,
+  },
+  btnSalvarText: { color: "#fff", fontWeight: "700" },
 });
