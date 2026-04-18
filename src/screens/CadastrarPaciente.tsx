@@ -14,8 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from "../config/api";
-import { obterToken } from "../utils/autenticacao";
+import api from "../config/api";
 
 // ─── Catálogo de categorias de cuidado ───────────────────────────────────────
 
@@ -103,49 +102,40 @@ export default function CadastrarPaciente({ route, navigation }: any) {
     if (!nome.trim()) return Alert.alert("Atenção", "Informe o nome do paciente.");
 
     try {
-      const token = await obterToken();
-      const res = await fetch(`${API_URL}/pacientes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          nome: nome.trim(),
-          genero: genero.trim() || null,
-          data_nascimento: dataNascimento.trim() || null,
-          responsavel_legal: responsavelLegal.trim() || null,
-          telefone_contato: telefoneContato.trim() || null,
-          categorias_cuidado: categorias.length > 0 ? categorias : null,
-          restricoes_alimentares: restricoes.trim() || null,
-          observacoes_rotina: observacoesRotina.trim() || null,
-        }),
+      const res = await api.post("/pacientes", {
+        nome: nome.trim(),
+        genero: genero.trim() || null,
+        data_nascimento: dataNascimento.trim() || null,
+        responsavel_legal: responsavelLegal.trim() || null,
+        telefone_contato: telefoneContato.trim() || null,
+        categorias_cuidado: categorias.length > 0 ? categorias : null,
+        restricoes_alimentares: restricoes.trim() || null,
+        observacoes_rotina: observacoesRotina.trim() || null,
       });
 
-      const json = await res.json();
-      if (!res.ok) {
-        return Alert.alert("Erro", json.message || "Erro ao cadastrar paciente.");
-      }
+      const { paciente_id } = res.data;
+      const pacienteObj = {
+        paciente_id,
+        nome: nome.trim(),
+        genero: genero.trim() || null,
+        data_nascimento: dataNascimento.trim() || null,
+        responsavel_legal: responsavelLegal.trim() || null,
+        telefone_contato: telefoneContato.trim() || null,
+        categorias_cuidado: categorias,
+        restricoes_alimentares: restricoes.trim() || null,
+        observacoes_rotina: observacoesRotina.trim() || null,
+      };
 
-      await AsyncStorage.setItem(
-        "paciente",
-        JSON.stringify({
-          paciente_id: json.paciente_id,
-          nome: nome.trim(),
-          genero: genero.trim() || null,
-          data_nascimento: dataNascimento.trim() || null,
-          responsavel_legal: responsavelLegal.trim() || null,
-          telefone_contato: telefoneContato.trim() || null,
-          categorias_cuidado: categorias,
-          restricoes_alimentares: restricoes.trim() || null,
-          observacoes_rotina: observacoesRotina.trim() || null,
-        })
-      );
+      await AsyncStorage.multiSet([
+        ["paciente", JSON.stringify(pacienteObj)],
+        ["paciente_ativo_id", String(paciente_id)],
+      ]);
 
       Alert.alert("Sucesso", "Paciente cadastrado com sucesso!");
       navigation.reset({ index: 0, routes: [{ name: "Abas" }] });
-    } catch {
-      Alert.alert("Erro", "Falha ao conectar com o servidor.");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || "Falha ao conectar com o servidor.";
+      Alert.alert("Erro", msg);
     }
   };
 

@@ -50,6 +50,8 @@ export default function NovaMedicamento({ navigation }: any) {
 
   const formatoAtual = FORMATOS.find((f) => f.value === formato) || FORMATOS[0];
 
+  const sentencaDosagem = `${formatoAtual.verb} ${qtdDose || "?"} ${formatoAtual.unit}${concentracao ? ` de ${concentracao}` : ""} por dose`;
+
   const abrirPickerNovo = () => {
     setTempHorario(new Date(2000, 0, 1, 8, 0));
     setEditingIndex(null);
@@ -102,8 +104,8 @@ export default function NovaMedicamento({ navigation }: any) {
       await api.post("/medicamentos", {
         nome,
         dosagem: formato,
-        mg: concentracao ? parseFloat(concentracao) : null,
-        qtd_comprimidos: qtdDose ? parseInt(qtdDose) : null,
+        mg: concentracao || null,
+        qtd_comprimidos: qtdDose ? parseFloat(qtdDose) : null,
         horarios,
         concluido: 0,
         inicio: inicio.toISOString().split("T")[0],
@@ -195,7 +197,15 @@ export default function NovaMedicamento({ navigation }: any) {
               onChangeText={setQtdDose}
             />
             <Text style={[styles.posologiaTexto, { color: cores.text, fontSize: tf(15) }]}>
-              {formatoAtual.unit} por vez
+              {formatoAtual.unit} por dose
+            </Text>
+          </View>
+
+          {/* Preview da sentença */}
+          <View style={[styles.sentencaPreview, { backgroundColor: cores.primary + "15", borderColor: cores.primary + "40" }]}>
+            <Ionicons name="information-circle-outline" size={16} color={cores.primary} />
+            <Text style={[styles.sentencaTexto, { color: cores.primary, fontSize: tf(13) }]}>
+              {sentencaDosagem}
             </Text>
           </View>
         </View>
@@ -390,6 +400,16 @@ const styles = StyleSheet.create({
     width: 70,
     textAlign: "center",
   },
+  sentencaPreview: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
+    marginTop: 10,
+    gap: 6,
+  },
+  sentencaTexto: { flex: 1, fontStyle: "italic", fontWeight: "600" },
   tipoTratamento: {
     flexDirection: "row",
     borderRadius: 10,

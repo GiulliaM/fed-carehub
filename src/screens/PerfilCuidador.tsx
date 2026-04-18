@@ -47,22 +47,18 @@ export default function PerfilCuidador({ navigation }: any) {
     try {
       setCarregando(true);
       const res = await api.get("/cuidador/perfil");
-      if (res && typeof res === "object") {
-        setBio(res.bio || "");
-        setPrecoHora(res.preco_hora != null ? String(res.preco_hora) : "");
-        setCidade(res.cidade || "");
-        setBairro(res.bairro || "");
-        setTelefone(res.telefone || "");
-        setDisponivelBusca(res.disponivel_busca !== 0);
-        setEspecialidades(Array.isArray(res.especialidades) ? res.especialidades : []);
-      } else {
-        setBio("");
-        setPrecoHora("");
-        setCidade("");
-        setBairro("");
-        setTelefone("");
-        setDisponivelBusca(true);
-        setEspecialidades([]);
+      const perfil = res.data;
+      if (perfil && typeof perfil === "object") {
+        setBio(perfil.bio || "");
+        setPrecoHora(perfil.preco_hora != null ? String(perfil.preco_hora) : "");
+        setCidade(perfil.cidade || "");
+        setBairro(perfil.bairro || "");
+        setTelefone(perfil.telefone || "");
+        setDisponivelBusca(perfil.disponivel_busca !== 0);
+        const esp = perfil.especialidades;
+        setEspecialidades(
+          Array.isArray(esp) ? esp : typeof esp === "string" ? JSON.parse(esp || "[]") : []
+        );
       }
     } catch (err: any) {
       if (err?.response?.status === 403) {

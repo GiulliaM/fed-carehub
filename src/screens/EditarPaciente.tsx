@@ -14,8 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
-import { API_URL } from "../config/api";
-import { obterToken } from "../utils/autenticacao";
+import api from "../config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ─── Catálogo de categorias de cuidado ───────────────────────────────────────
@@ -128,12 +127,8 @@ export default function EditarPaciente({ route, navigation }: any) {
 
   const carregarPaciente = async () => {
     try {
-      const token = await obterToken();
-      const res = await fetch(`${API_URL}/pacientes`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
-      if (res.ok && json.length > 0) preencherCampos(json[0]);
+      const res = await api.get("/pacientes");
+      if (Array.isArray(res.data) && res.data.length > 0) preencherCampos(res.data[0]);
     } catch {
       Alert.alert("Erro", "Falha ao carregar dados do paciente.");
     } finally {
@@ -151,44 +146,36 @@ export default function EditarPaciente({ route, navigation }: any) {
     if (!paciente?.paciente_id) return Alert.alert("Erro", "Paciente inválido.");
 
     try {
-      const token = await obterToken();
-      const res = await fetch(`${API_URL}/pacientes/${paciente.paciente_id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          nome: nome.trim(),
-          genero: genero.trim() || null,
-          data_nascimento: dataNascimento.trim() || null,
-          responsavel_legal: responsavelLegal.trim() || null,
-          telefone_contato: telefoneContato.trim() || null,
-          categorias_cuidado: categorias.length > 0 ? categorias : null,
-          restricoes_alimentares: restricoes.trim() || null,
-          observacoes_rotina: observacoesRotina.trim() || null,
-        }),
+      await api.patch(`/pacientes/${paciente.paciente_id}`, {
+        nome: nome.trim(),
+        genero: genero.trim() || null,
+        data_nascimento: dataNascimento.trim() || null,
+        responsavel_legal: responsavelLegal.trim() || null,
+        telefone_contato: telefoneContato.trim() || null,
+        categorias_cuidado: categorias.length > 0 ? categorias : null,
+        restricoes_alimentares: restricoes.trim() || null,
+        observacoes_rotina: observacoesRotina.trim() || null,
       });
 
-      const json = await res.json();
-      if (!res.ok) return Alert.alert("Erro", json.message || "Erro ao atualizar paciente.");
+      const pacienteAtualizado = {
+        ...paciente,
+        nome: nome.trim(),
+        genero: genero.trim() || null,
+        data_nascimento: dataNascimento.trim() || null,
+        responsavel_legal: responsavelLegal.trim() || null,
+        telefone_contato: telefoneContato.trim() || null,
+        categorias_cuidado: categorias,
+        restricoes_alimentares: restricoes.trim() || null,
+        observacoes_rotina: observacoesRotina.trim() || null,
+      };
 
-      await AsyncStorage.setItem(
-        "paciente",
-        JSON.stringify({
-          ...paciente,
-          nome: nome.trim(),
-          genero: genero.trim() || null,
-          data_nascimento: dataNascimento.trim() || null,
-          responsavel_legal: responsavelLegal.trim() || null,
-          telefone_contato: telefoneContato.trim() || null,
-          categorias_cuidado: categorias,
-          restricoes_alimentares: restricoes.trim() || null,
-          observacoes_rotina: observacoesRotina.trim() || null,
-        })
-      );
+      await AsyncStorage.setItem("paciente", JSON.stringify(pacienteAtualizado));
 
       Alert.alert("Sucesso", "Informações atualizadas com sucesso!");
       navigation.goBack();
-    } catch {
-      Alert.alert("Erro", "Falha ao conectar com o servidor.");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || "Falha ao conectar com o servidor.";
+      Alert.alert("Erro", msg);
     }
   };
 
@@ -216,22 +203,14 @@ export default function EditarPaciente({ route, navigation }: any) {
                       return;
                     }
                     try {
-                      const token = await obterToken();
-                      const res = await fetch(`${API_URL}/pacientes/${paciente.paciente_id}`, {
-                        method: "DELETE",
-                        headers: { Authorization: `Bearer ${token}` },
-                      });
-                      const json = await res.json();
-                      if (!res.ok) {
-                        Alert.alert("Erro", json.message || "Não foi possível excluir o paciente.");
-                        return;
-                      }
+                      await api.delete(`/pacientes/${paciente.paciente_id}`);
                       await AsyncStorage.multiRemove(["paciente", "paciente_ativo_id"]);
                       Alert.alert("Concluído", "Paciente excluído com sucesso.", [
                         { text: "OK", onPress: () => navigation.navigate("Abas") },
                       ]);
-                    } catch {
-                      Alert.alert("Erro", "Falha ao conectar com o servidor.");
+                    } catch (err: any) {
+                      const msg = err?.response?.data?.message || "Não foi possível excluir o paciente.";
+                      Alert.alert("Erro", msg);
                     }
                   },
                 },

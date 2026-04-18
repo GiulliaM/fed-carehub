@@ -31,6 +31,8 @@ export default function Home({ navigation }: any) {
   const [carregando, setCarregando] = useState(true);
   const [membrosGrupo, setMembrosGrupo] = useState<any[]>([]);
 
+  const [artigos, setArtigos] = useState<any[]>([]);
+
   const [resumo, setResumo] = useState({
     tarefasTotal: 0,
     tarefasConcluidas: 0,
@@ -52,9 +54,13 @@ export default function Home({ navigation }: any) {
         setUser(userData);
       }
 
-      const listaPacientes = await api.get("/pacientes");
+      const [listaPacientes, resArtigos] = await Promise.all([
+        api.get("/pacientes"),
+        api.get("/artigos").catch(() => ({ data: [] })),
+      ]);
       const lista = Array.isArray(listaPacientes.data) ? listaPacientes.data : [];
       setPacientes(lista);
+      setArtigos(Array.isArray(resArtigos.data) ? resArtigos.data.slice(0, 10) : []);
 
       if (lista.length > 0) {
         const rawPac = await AsyncStorage.getItem("paciente_ativo_id");
@@ -190,7 +196,9 @@ export default function Home({ navigation }: any) {
                     { color: cores.muted, fontSize: tf(14) },
                   ]}
                 >
-                  Resumo do cuidado de hoje
+                  {user?.tipo === "cuidador"
+                    ? "Seus pacientes hoje"
+                    : "Resumo do cuidado de hoje"}
                 </Text>
               </View>
               <TouchableOpacity
@@ -303,19 +311,23 @@ export default function Home({ navigation }: any) {
                     Nenhum {termo.toLowerCase()} vinculado.
                   </Text>
                   <View style={styles.emptyActions}>
-                    <TouchableOpacity
-                      style={[styles.actionBtn, { backgroundColor: cores.primary }]}
-                      onPress={() => navigation.navigate("CadastrarPaciente")}
-                    >
-                      <Ionicons name="add-outline" size={16} color="#fff" />
-                      <Text style={styles.actionBtnText}>Cadastrar</Text>
-                    </TouchableOpacity>
+                    {user?.tipo !== "cuidador" && (
+                      <TouchableOpacity
+                        style={[styles.actionBtn, { backgroundColor: cores.primary }]}
+                        onPress={() => navigation.navigate("CadastrarPaciente")}
+                      >
+                        <Ionicons name="add-outline" size={16} color="#fff" />
+                        <Text style={styles.actionBtnText}>Cadastrar</Text>
+                      </TouchableOpacity>
+                    )}
                     <TouchableOpacity
                       style={[styles.actionBtn, { backgroundColor: cores.accent }]}
                       onPress={() => navigation.navigate("VincularCuidador")}
                     >
                       <Ionicons name="link-outline" size={16} color="#fff" />
-                      <Text style={styles.actionBtnText}>Vincular</Text>
+                      <Text style={styles.actionBtnText}>
+                        {user?.tipo === "cuidador" ? "Vincular paciente" : "Vincular"}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -394,6 +406,43 @@ export default function Home({ navigation }: any) {
               </View>
             )}
 
+            {/* Slider de artigos */}
+            {artigos.length > 0 && (
+              <>
+                <Text style={[styles.sectionTitle, { color: cores.primary, fontSize: tf(18) }]}>
+                  Artigos e Dicas
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ marginBottom: 14 }}
+                  contentContainerStyle={{ paddingRight: 8 }}
+                >
+                  {artigos.map((a: any) => (
+                    <TouchableOpacity
+                      key={a.artigo_id}
+                      style={[styles.artigoCard, { backgroundColor: cores.card, borderColor: cores.border }]}
+                      onPress={() => navigation.navigate("Artigo", { artigo_id: a.artigo_id })}
+                    >
+                      {a.categoria ? (
+                        <View style={[styles.artigoChip, { backgroundColor: cores.primary }]}>
+                          <Text style={{ color: "#fff", fontSize: tf(10), fontWeight: "700" }}>
+                            {a.categoria}
+                          </Text>
+                        </View>
+                      ) : null}
+                      <Text
+                        style={[styles.artigoTitulo, { color: cores.text, fontSize: tf(13) }]}
+                        numberOfLines={3}
+                      >
+                        {a.titulo}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )}
+
             {/* Acesso rapido */}
             <Text style={[styles.sectionTitle, { color: cores.primary, fontSize: tf(18) }]}>
               Acesso rapido
@@ -421,22 +470,24 @@ export default function Home({ navigation }: any) {
             {/* Botoes vincular/cadastrar */}
             {pacienteAtivo && (
               <View style={styles.linkRow}>
-                <TouchableOpacity
-                  style={[styles.linkBtn, { backgroundColor: cores.card, borderColor: cores.border }]}
-                  onPress={() => navigation.navigate("CadastrarPaciente")}
-                >
-                  <Ionicons name="add-circle-outline" size={20} color={cores.primary} />
-                  <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]}>
-                    Cadastrar {termo.toLowerCase()}
-                  </Text>
-                </TouchableOpacity>
+                {user?.tipo !== "cuidador" && (
+                  <TouchableOpacity
+                    style={[styles.linkBtn, { backgroundColor: cores.card, borderColor: cores.border }]}
+                    onPress={() => navigation.navigate("CadastrarPaciente")}
+                  >
+                    <Ionicons name="add-circle-outline" size={20} color={cores.primary} />
+                    <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]}>
+                      Cadastrar {termo.toLowerCase()}
+                    </Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   style={[styles.linkBtn, { backgroundColor: cores.card, borderColor: cores.border }]}
                   onPress={() => navigation.navigate("VincularCuidador")}
                 >
                   <Ionicons name="link-outline" size={20} color={cores.primary} />
                   <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]}>
-                    Vincular pessoa
+                    {user?.tipo === "cuidador" ? "Vincular paciente" : "Vincular pessoa"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -548,6 +599,24 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   quickText: { marginTop: 6, fontWeight: "600" },
+  artigoCard: {
+    width: 150,
+    borderRadius: 12,
+    padding: 12,
+    marginRight: 10,
+    borderWidth: 1,
+    elevation: 1,
+    justifyContent: "space-between",
+    minHeight: 100,
+  },
+  artigoChip: {
+    alignSelf: "flex-start",
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginBottom: 6,
+  },
+  artigoTitulo: { fontWeight: "600", lineHeight: 18 },
   linkRow: { flexDirection: "row", gap: 10, marginTop: 4 },
   linkBtn: {
     flex: 1,

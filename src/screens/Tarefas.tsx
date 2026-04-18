@@ -72,6 +72,7 @@ export default function Tarefas({ navigation }: any) {
       setTarefas(tarefasCorrigidas);
     } catch {
       setTarefas([]);
+      Alert.alert("Erro", "Não foi possível carregar as tarefas.");
     } finally {
       setCarregando(false);
     }
