@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,11 +9,12 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Calendar } from "react-native-calendars";
+import { Calendar, LocaleConfig } from "react-native-calendars";
 import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 import api from "../config/api";
 
 import dayjs from "dayjs";
@@ -22,6 +23,17 @@ import "dayjs/locale/pt-br";
 
 dayjs.extend(isSameOrBefore);
 dayjs.locale("pt-br");
+
+// ─── Locale PT-BR ─────────────────────────────────────────────────────────────
+
+LocaleConfig.locales["pt-br"] = {
+  monthNames: ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],
+  monthNamesShort: ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],
+  dayNames: ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"],
+  dayNamesShort: ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"],
+  today: "Hoje",
+};
+LocaleConfig.defaultLocale = "pt-br";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -47,16 +59,34 @@ const UNIDADE: Record<string, string> = {
   Gotas: "gotas",
   Mililitros: "mL",
   Injecao: "mL",
-  Pomada: "g",
+  Pomada: "",
 };
+
+const ICONE_FORMATO: Record<string, { tipo: "ion" | "mci"; nome: string }> = {
+  Comprimido: { tipo: "mci", nome: "pill" },
+  Gotas:      { tipo: "ion", nome: "water-outline" },
+  Mililitros: { tipo: "ion", nome: "beaker-outline" },
+  Injecao:    { tipo: "mci", nome: "needle" },
+  Pomada:     { tipo: "ion", nome: "color-fill-outline" },
+};
+
+function FormatoIcone({ dosagem, color }: { dosagem: string; color: string }) {
+  const cfg = ICONE_FORMATO[dosagem];
+  if (!cfg) return <Ionicons name="medical-outline" size={20} color={color} />;
+  if (cfg.tipo === "mci") return <MaterialCommunityIcons name={cfg.nome as any} size={20} color={color} />;
+  return <Ionicons name={cfg.nome as any} size={20} color={color} />;
+}
 
 function montarDoseInfo(med: any): string {
   const formato = (med.dosagem ?? "").trim();
   const unidade = UNIDADE[formato] ?? "unidade(s)";
   const qtd = med.qtd_comprimidos;
   const conc = med.mg ? ` · ${med.mg}${formato === "Pomada" ? "%" : "mg"}` : "";
+  if (formato === "Pomada") {
+    return med.local_aplicacao ? `Aplicar em: ${med.local_aplicacao}` : "Pomada";
+  }
   if (qtd) return `${qtd} ${unidade}${conc}`;
-  if (med.mg) return `${med.mg}${formato === "Pomada" ? "%" : "mg"}`;
+  if (med.mg) return `${med.mg}mg`;
   return "";
 }
 
@@ -79,6 +109,7 @@ function medicamentoAtivoNaData(med: any, dataStr: string): boolean {
 
 export default function Medicamentos({ navigation }: any) {
   const { cores, tf } = useTema();
+  const route = useRoute<any>();
 
   const hoje = dayjs().format("YYYY-MM-DD");
   const [dataSelecionada, setDataSelecionada] = useState(hoje);
@@ -86,6 +117,13 @@ export default function Medicamentos({ navigation }: any) {
   const [doses, setDoses] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [pacienteId, setPacienteId] = useState<number | null>(null);
+
+  // Ao clicar na aba de medicamentos já estando nela → volta para hoje
+  useEffect(() => {
+    if (route.params?.resetToToday) {
+      setDataSelecionada(dayjs().format("YYYY-MM-DD"));
+    }
+  }, [route.params?.resetToToday]);
 
   // ── Busca ──────────────────────────────────────────────────────────────────
 
@@ -143,7 +181,9 @@ export default function Medicamentos({ navigation }: any) {
     [pacienteId, fetchDoses]
   );
 
-  // ── Slots do dia (horários manuais, ordenados) ─────────────────────────────
+  // ── Slots do dia ──────────────────────────────────────────────────────────
+
+  const agoraHora = dayjs().format("HH:mm");
 
   const slots: SlotDose[] = useMemo(() => {
     const dosesMap: Record<string, boolean> = {};
@@ -156,7 +196,6 @@ export default function Medicamentos({ navigation }: any) {
 
     medicamentos.forEach((med) => {
       if (!medicamentoAtivoNaData(med, dataSelecionada)) return;
-
       const horarios = Array.isArray(med.horarios) ? med.horarios : [];
 
       horarios.forEach((horario: string) => {
@@ -176,7 +215,7 @@ export default function Medicamentos({ navigation }: any) {
     return lista.sort((a, b) => a.horario.localeCompare(b.horario));
   }, [medicamentos, doses, dataSelecionada]);
 
-  // ── Toggle dose (otimista) ─────────────────────────────────────────────────
+  // ── Toggle dose (otimista) ────────────────────────────────────────────────
 
   const handleToggle = useCallback(
     async (slot: SlotDose) => {
@@ -185,22 +224,16 @@ export default function Medicamentos({ navigation }: any) {
 
       setDoses((prev) => {
         const existe = prev.find(
-          (d) =>
-            d.medicamento_id === slot.medicamento_id &&
-            String(d.horario).substring(0, 5) === hor
+          (d) => d.medicamento_id === slot.medicamento_id && String(d.horario).substring(0, 5) === hor
         );
         if (existe) {
           return prev.map((d) =>
-            d.medicamento_id === slot.medicamento_id &&
-            String(d.horario).substring(0, 5) === hor
+            d.medicamento_id === slot.medicamento_id && String(d.horario).substring(0, 5) === hor
               ? { ...d, tomado: novoTomado ? 1 : 0 }
               : d
           );
         }
-        return [
-          ...prev,
-          { medicamento_id: slot.medicamento_id, horario: hor, tomado: novoTomado ? 1 : 0 },
-        ];
+        return [...prev, { medicamento_id: slot.medicamento_id, horario: hor, tomado: novoTomado ? 1 : 0 }];
       });
 
       try {
@@ -212,8 +245,7 @@ export default function Medicamentos({ navigation }: any) {
       } catch {
         setDoses((prev) =>
           prev.map((d) =>
-            d.medicamento_id === slot.medicamento_id &&
-            String(d.horario).substring(0, 5) === hor
+            d.medicamento_id === slot.medicamento_id && String(d.horario).substring(0, 5) === hor
               ? { ...d, tomado: slot.tomado ? 1 : 0 }
               : d
           )
@@ -224,7 +256,7 @@ export default function Medicamentos({ navigation }: any) {
     [dataSelecionada]
   );
 
-  // ── Marcações do calendário ────────────────────────────────────────────────
+  // ── Marcações do calendário ───────────────────────────────────────────────
 
   const marcarDias = useMemo(() => {
     const marked: Record<string, any> = {};
@@ -257,6 +289,13 @@ export default function Medicamentos({ navigation }: any) {
       }
     });
 
+    // Bolinha sempre no dia atual
+    marked[hoje] = {
+      ...(marked[hoje] ?? {}),
+      marked: true,
+      dotColor: cores.accent ?? cores.primary,
+    };
+
     marked[dataSelecionada] = {
       ...(marked[dataSelecionada] ?? {}),
       selected: true,
@@ -264,9 +303,9 @@ export default function Medicamentos({ navigation }: any) {
     };
 
     return marked;
-  }, [medicamentos, dataSelecionada, cores.primary]);
+  }, [medicamentos, dataSelecionada, cores.primary, cores.accent, hoje]);
 
-  // ── Layout ─────────────────────────────────────────────────────────────────
+  // ── Layout ────────────────────────────────────────────────────────────────
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: cores.background }]}>
@@ -278,6 +317,13 @@ export default function Medicamentos({ navigation }: any) {
         <Calendar
           markedDates={marcarDias}
           onDayPress={handleDiaPress}
+          renderArrow={(dir) => (
+            <Ionicons
+              name={dir === "left" ? "chevron-back" : "chevron-forward"}
+              size={20}
+              color={cores.primary}
+            />
+          )}
           theme={{
             backgroundColor: cores.card,
             calendarBackground: cores.card,
@@ -310,76 +356,95 @@ export default function Medicamentos({ navigation }: any) {
             keyExtractor={(item) => item.key}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() =>
-                  navigation.navigate("DetalhesMedicamento", { medicamento: item.medicamento })
-                }
-                style={[
-                  styles.card,
-                  {
-                    backgroundColor: cores.card,
-                    borderColor: cores.border,
-                    opacity: item.tomado ? 0.7 : 1,
-                  },
-                ]}
-              >
+            renderItem={({ item }) => {
+              const atrasado = dataSelecionada === hoje && !item.tomado && item.horario < agoraHora;
+              return (
                 <TouchableOpacity
-                  onPress={() => handleToggle(item)}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    navigation.navigate("DetalhesMedicamento", { medicamento: item.medicamento })
+                  }
+                  style={[
+                    styles.card,
+                    {
+                      backgroundColor: cores.card,
+                      borderColor: atrasado ? cores.danger : cores.border,
+                      opacity: item.tomado ? 0.7 : 1,
+                    },
+                  ]}
                 >
-                  <Ionicons
-                    name={item.tomado ? "checkbox" : "square-outline"}
-                    size={24}
-                    color={item.tomado ? cores.success : cores.muted}
-                  />
-                </TouchableOpacity>
-
-                <View style={styles.cardContent}>
-                  <Text
-                    style={[
-                      styles.cardTitle,
-                      {
-                        color: cores.text,
-                        fontSize: tf(16),
-                        textDecorationLine: item.tomado ? "line-through" : "none",
-                      },
-                    ]}
-                    numberOfLines={1}
+                  <TouchableOpacity
+                    onPress={() => handleToggle(item)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
-                    {item.nome}
-                  </Text>
-                  {item.doseInfo ? (
+                    <Ionicons
+                      name={item.tomado ? "checkbox" : "square-outline"}
+                      size={24}
+                      color={item.tomado ? cores.success : cores.muted}
+                    />
+                  </TouchableOpacity>
+
+                  <View style={styles.formatoIcone}>
+                    <FormatoIcone
+                      dosagem={item.medicamento?.dosagem ?? ""}
+                      color={item.tomado ? cores.muted : cores.primary}
+                    />
+                  </View>
+
+                  <View style={styles.cardContent}>
                     <Text
-                      style={[styles.cardSubtitle, { color: cores.muted, fontSize: tf(13) }]}
+                      style={[
+                        styles.cardTitle,
+                        {
+                          color: cores.text,
+                          fontSize: tf(16),
+                          textDecorationLine: item.tomado ? "line-through" : "none",
+                        },
+                      ]}
                       numberOfLines={1}
                     >
-                      {item.doseInfo}
+                      {item.nome}
                     </Text>
-                  ) : null}
-                </View>
-
-                <View style={styles.cardRight}>
-                  <View style={styles.timeChip}>
-                    <Ionicons name="time-outline" size={14} color={cores.primary} />
-                    <Text style={[styles.timeText, { color: cores.primary, fontSize: tf(13) }]}>
-                      {item.horario}
-                    </Text>
+                    {item.doseInfo ? (
+                      <Text
+                        style={[styles.cardSubtitle, { color: cores.muted, fontSize: tf(13) }]}
+                        numberOfLines={1}
+                      >
+                        {item.doseInfo}
+                      </Text>
+                    ) : null}
                   </View>
-                </View>
-              </TouchableOpacity>
-            )}
+
+                  <View style={styles.cardRight}>
+                    <View style={styles.timeChip}>
+                      <Ionicons
+                        name={atrasado ? "alert-circle" : "time-outline"}
+                        size={14}
+                        color={atrasado ? cores.danger : cores.primary}
+                      />
+                      <Text
+                        style={[
+                          styles.timeText,
+                          { color: atrasado ? cores.danger : cores.primary, fontSize: tf(13) },
+                        ]}
+                      >
+                        {item.horario}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
           />
         )}
-
-        <TouchableOpacity
-          style={[styles.addBtn, { backgroundColor: cores.primary }]}
-          onPress={() => navigation.navigate("NovaMedicamento")}
-        >
-          <Ionicons name="add" size={28} color="#fff" />
-        </TouchableOpacity>
       </View>
+
+      <TouchableOpacity
+        style={[styles.addBtn, { backgroundColor: cores.primary }]}
+        onPress={() => navigation.navigate("NovaMedicamento")}
+      >
+        <Ionicons name="add" size={28} color="#fff" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -400,7 +465,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     elevation: 1,
   },
-  cardContent: { flex: 1, marginLeft: 12 },
+  formatoIcone: { marginHorizontal: 8 },
+  cardContent: { flex: 1, marginLeft: 4 },
   cardTitle: { fontWeight: "600" },
   cardSubtitle: { marginTop: 2 },
   cardRight: { alignItems: "flex-end", marginLeft: 8 },

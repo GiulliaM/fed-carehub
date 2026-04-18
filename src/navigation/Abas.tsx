@@ -1,6 +1,6 @@
 import React from "react";
+import { View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   MaterialCommunityIcons,
   FontAwesome5,
@@ -20,7 +20,7 @@ export default function Abas() {
   const { cores } = useTema();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: cores.background }}>
+    <View style={{ flex: 1, backgroundColor: cores.background }}>
       <Tab.Navigator
         screenOptions={({ route }: { route: { name: string } }) => ({
           headerShown: false,
@@ -70,10 +70,18 @@ export default function Abas() {
       >
         <Tab.Screen name="Home" component={Home} />
         <Tab.Screen name="Tarefas" component={Tarefas} />
-        <Tab.Screen name="Medicamentos" component={Medicamentos} />
+        <Tab.Screen
+          name="Medicamentos"
+          component={Medicamentos}
+          listeners={({ navigation }) => ({
+            tabPress: () => {
+              navigation.navigate("Medicamentos", { resetToToday: Date.now() });
+            },
+          })}
+        />
         <Tab.Screen name="Diario" component={Diario} />
         <Tab.Screen name="Perfil" component={Perfil} />
       </Tab.Navigator>
-    </SafeAreaView>
+    </View>
   );
 }

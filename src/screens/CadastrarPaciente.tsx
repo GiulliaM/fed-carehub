@@ -77,6 +77,13 @@ export default function CadastrarPaciente({ route, navigation }: any) {
   const { cores, tf } = useTema();
   const primeiroAcesso = route.params?.primeiroAcesso ?? false;
 
+  const mascaraData = (t: string) => {
+    const n = t.replace(/\D/g, "").substring(0, 8);
+    if (n.length <= 4) return n;
+    if (n.length <= 6) return `${n.slice(0, 4)}-${n.slice(4)}`;
+    return `${n.slice(0, 4)}-${n.slice(4, 6)}-${n.slice(6)}`;
+  };
+
   // Bloco 1 — Identificação
   const [nome, setNome] = useState("");
   const [genero, setGenero] = useState("");
@@ -171,19 +178,28 @@ export default function CadastrarPaciente({ route, navigation }: any) {
               value={nome}
               onChangeText={setNome}
             />
-            <TextInput
-              style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
-              placeholder="Gênero (Masculino, Feminino, Outro)"
-              placeholderTextColor={cores.inputPlaceholder}
-              value={genero}
-              onChangeText={setGenero}
-            />
+            <Text style={[styles.fieldLabelInline, { color: cores.text, fontSize: tf(14) }]}>Gênero</Text>
+            <View style={[styles.generoRow, { borderColor: cores.border }]}>
+              {(["Feminino", "Masculino", "Outro"] as const).map((g) => (
+                <TouchableOpacity
+                  key={g}
+                  style={[
+                    styles.generoBtn,
+                    { borderColor: cores.primary },
+                    genero === g && { backgroundColor: cores.primary },
+                  ]}
+                  onPress={() => setGenero(genero === g ? "" : g)}
+                >
+                  <Text style={[styles.generoBtnText, { color: genero === g ? "#fff" : cores.primary }]}>{g}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <TextInput
               style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
               placeholder="Data de nascimento (AAAA-MM-DD)"
               placeholderTextColor={cores.inputPlaceholder}
               value={dataNascimento}
-              onChangeText={setDataNascimento}
+              onChangeText={(t) => setDataNascimento(mascaraData(t))}
               keyboardType="numeric"
             />
             <TextInput
@@ -337,6 +353,21 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 15,
   },
+  fieldLabelInline: { fontWeight: "600", marginBottom: 6 },
+  generoRow: {
+    flexDirection: "row",
+    borderRadius: 10,
+    overflow: "hidden",
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  generoBtn: {
+    flex: 1,
+    paddingVertical: 11,
+    alignItems: "center",
+    borderWidth: 0,
+  },
+  generoBtnText: { fontWeight: "700", fontSize: 13 },
   textArea: { minHeight: 80, textAlignVertical: "top" },
   catSubtitle: { marginBottom: 4 },
   catHeader: {

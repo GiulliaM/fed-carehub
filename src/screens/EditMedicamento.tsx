@@ -21,14 +21,16 @@ const FORMATOS = [
   { label: "Gotas", value: "Gotas", unit: "gotas", verb: "Tomar", concentLabel: "Concentração (mg/mL)" },
   { label: "Mililitros (mL)", value: "Mililitros", unit: "mL", verb: "Tomar", concentLabel: "Concentração (mg/mL)" },
   { label: "Injeção", value: "Injecao", unit: "mL", verb: "Aplicar", concentLabel: "Concentração (mg/mL)" },
-  { label: "Pomada", value: "Pomada", unit: "g", verb: "Aplicar", concentLabel: "Concentração (%)" },
+  { label: "Pomada", value: "Pomada", unit: "", verb: "Aplicar", concentLabel: "" },
 ];
 
-// Resolve o formato salvo no campo `dosagem` — se não for um dos conhecidos, usa Comprimido
 function resolverFormato(dosagem: string | null | undefined): string {
   const match = FORMATOS.find((f) => f.value === dosagem);
   return match ? match.value : "Comprimido";
 }
+
+const dataLocal = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 export default function EditMedicamento({ route, navigation }: any) {
   const { medicamento } = route.params;
@@ -41,9 +43,12 @@ export default function EditMedicamento({ route, navigation }: any) {
     medicamento?.mg ? String(medicamento.mg) : ""
   );
 
-  // Bloco 2 — Posologia
+  // Bloco 2 — Posologia / Aplicação
   const [qtdDose, setQtdDose] = useState(
     medicamento?.qtd_comprimidos ? String(medicamento.qtd_comprimidos) : ""
+  );
+  const [localAplicacao, setLocalAplicacao] = useState(
+    medicamento?.local_aplicacao ?? ""
   );
 
   // Bloco 3 — Agendamento
@@ -51,20 +56,19 @@ export default function EditMedicamento({ route, navigation }: any) {
   const [duracaoDays, setDuracaoDays] = useState(
     medicamento?.duracao_days ? String(medicamento.duracao_days) : ""
   );
-  const [horarios, setHorarios] = useState<string[]>(
-    medicamento?.horarios || []
-  );
+  const [horarios, setHorarios] = useState<string[]>(medicamento?.horarios || []);
   const [tempHorario, setTempHorario] = useState(new Date(2000, 0, 1, 8, 0));
   const [showHoraPicker, setShowHoraPicker] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [inicio, setInicio] = useState(
-    medicamento?.inicio ? new Date(medicamento.inicio) : new Date()
+    medicamento?.inicio ? new Date(medicamento.inicio + "T12:00:00") : new Date()
   );
   const [showInicioPicker, setShowInicioPicker] = useState(false);
 
   const [salvando, setSalvando] = useState(false);
 
   const formatoAtual = FORMATOS.find((f) => f.value === formato) || FORMATOS[0];
+  const isPomada = formato === "Pomada";
 
   const abrirPickerNovo = () => {
     setTempHorario(new Date(2000, 0, 1, 8, 0));
@@ -108,10 +112,11 @@ export default function EditMedicamento({ route, navigation }: any) {
     const payload: any = {
       nome,
       dosagem: formato,
-      mg: concentracao ? parseFloat(concentracao) : null,
-      qtd_comprimidos: qtdDose ? parseInt(qtdDose) : null,
+      mg: !isPomada && concentracao ? parseInt(concentracao, 10) : null,
+      qtd_comprimidos: !isPomada && qtdDose ? parseInt(qtdDose, 10) : null,
+      local_aplicacao: isPomada ? (localAplicacao.trim() || null) : null,
       horarios,
-      inicio: inicio.toISOString().split("T")[0],
+      inicio: dataLocal(inicio),
       duracao_days: !usoContinuo && duracaoDays ? Number(duracaoDays) : null,
       uso_continuo: usoContinuo ? 1 : 0,
     };
@@ -185,44 +190,58 @@ export default function EditMedicamento({ route, navigation }: any) {
             </Picker>
           </View>
 
-          <Text style={[styles.fieldLabel, { color: cores.text, fontSize: tf(14) }]}>
-            {formatoAtual.concentLabel}
-          </Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
-            placeholder="Ex: 500"
-            placeholderTextColor={cores.inputPlaceholder}
-            keyboardType="numeric"
-            value={concentracao}
-            onChangeText={setConcentracao}
-          />
+          {!isPomada && (
+            <>
+              <Text style={[styles.fieldLabel, { color: cores.text, fontSize: tf(14) }]}>
+                {formatoAtual.concentLabel}
+              </Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+                placeholder="Ex: 500"
+                placeholderTextColor={cores.inputPlaceholder}
+                keyboardType="numeric"
+                value={concentracao}
+                onChangeText={setConcentracao}
+              />
+            </>
+          )}
         </View>
 
-        {/* ━━━━━━━━━━━━━━━━━━ Bloco 2 — Posologia ━━━━━━━━━━━━━━━━━━ */}
+        {/* ━━━━━━━━━━━━━━━━━━ Bloco 2 — Posologia / Aplicação ━━━━━━━━━━━━━━━━━━ */}
         <View style={[styles.bloco, { backgroundColor: cores.card, borderColor: cores.border }]}>
           <View style={styles.blocoHeader}>
             <Ionicons name="timer-outline" size={20} color={cores.primary} />
             <Text style={[styles.blocoTitulo, { color: cores.text, fontSize: tf(15) }]}>
-              Posologia
+              {isPomada ? "Aplicação" : "Posologia"}
             </Text>
           </View>
 
-          <View style={styles.posologiaRow}>
-            <Text style={[styles.posologiaTexto, { color: cores.text, fontSize: tf(15) }]}>
-              {formatoAtual.verb}
-            </Text>
+          {isPomada ? (
             <TextInput
-              style={[styles.posologiaInput, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
-              placeholder="0"
+              style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+              placeholder="Aplicar onde? Ex: nos pés, nas costas"
               placeholderTextColor={cores.inputPlaceholder}
-              keyboardType="numeric"
-              value={qtdDose}
-              onChangeText={setQtdDose}
+              value={localAplicacao}
+              onChangeText={setLocalAplicacao}
             />
-            <Text style={[styles.posologiaTexto, { color: cores.text, fontSize: tf(15) }]}>
-              {formatoAtual.unit} por vez
-            </Text>
-          </View>
+          ) : (
+            <View style={styles.posologiaRow}>
+              <Text style={[styles.posologiaTexto, { color: cores.text, fontSize: tf(15) }]}>
+                {formatoAtual.verb}
+              </Text>
+              <TextInput
+                style={[styles.posologiaInput, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+                placeholder="0"
+                placeholderTextColor={cores.inputPlaceholder}
+                keyboardType="numeric"
+                value={qtdDose}
+                onChangeText={setQtdDose}
+              />
+              <Text style={[styles.posologiaTexto, { color: cores.text, fontSize: tf(15) }]}>
+                {formatoAtual.unit} por vez
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* ━━━━━━━━━━━━━━━━━━ Bloco 3 — Agendamento ━━━━━━━━━━━━━━━━━━ */}
@@ -234,7 +253,6 @@ export default function EditMedicamento({ route, navigation }: any) {
             </Text>
           </View>
 
-          {/* Tipo de tratamento */}
           <View style={[styles.tipoTratamento, { borderColor: cores.primary }]}>
             <TouchableOpacity
               style={[styles.tipoBtn, { borderColor: cores.primary }, !usoContinuo && { backgroundColor: cores.primary }]}
@@ -265,7 +283,6 @@ export default function EditMedicamento({ route, navigation }: any) {
             />
           )}
 
-          {/* Horários */}
           <Text style={[styles.fieldLabel, { color: cores.text, fontSize: tf(14), marginTop: 10 }]}>
             Horários {horarios.length > 0 ? `(${horarios.length})` : ""}
           </Text>
@@ -309,7 +326,6 @@ export default function EditMedicamento({ route, navigation }: any) {
             />
           )}
 
-          {/* Data de início */}
           <TouchableOpacity
             style={[styles.btnSelect, { backgroundColor: cores.inputBg, borderColor: cores.border }]}
             onPress={() => setShowInicioPicker(true)}

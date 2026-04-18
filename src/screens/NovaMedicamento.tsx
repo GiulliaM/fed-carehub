@@ -22,7 +22,7 @@ const FORMATOS = [
   { label: "Gotas", value: "Gotas", unit: "gotas", verb: "Tomar", concentLabel: "Concentração (mg/mL)" },
   { label: "Mililitros (mL)", value: "Mililitros", unit: "mL", verb: "Tomar", concentLabel: "Concentração (mg/mL)" },
   { label: "Injeção", value: "Injecao", unit: "mL", verb: "Aplicar", concentLabel: "Concentração (mg/mL)" },
-  { label: "Pomada", value: "Pomada", unit: "g", verb: "Aplicar", concentLabel: "Concentração (%)" },
+  { label: "Pomada", value: "Pomada", unit: "", verb: "Aplicar", concentLabel: "" },
 ];
 
 export default function NovaMedicamento({ navigation }: any) {
@@ -35,6 +35,7 @@ export default function NovaMedicamento({ navigation }: any) {
 
   // Bloco 2 — Posologia
   const [qtdDose, setQtdDose] = useState("");
+  const [localAplicacao, setLocalAplicacao] = useState("");
 
   // Bloco 3 — Agendamento
   const [usoContinuo, setUsoContinuo] = useState(false);
@@ -49,6 +50,10 @@ export default function NovaMedicamento({ navigation }: any) {
   const [salvando, setSalvando] = useState(false);
 
   const formatoAtual = FORMATOS.find((f) => f.value === formato) || FORMATOS[0];
+  const isPomada = formato === "Pomada";
+
+  const dataLocal = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
   const sentencaDosagem = `${formatoAtual.verb} ${qtdDose || "?"} ${formatoAtual.unit}${concentracao ? ` de ${concentracao}` : ""} por dose`;
 
@@ -104,11 +109,12 @@ export default function NovaMedicamento({ navigation }: any) {
       await api.post("/medicamentos", {
         nome,
         dosagem: formato,
-        mg: concentracao || null,
-        qtd_comprimidos: qtdDose ? parseFloat(qtdDose) : null,
+        mg: !isPomada && concentracao ? parseInt(concentracao, 10) : null,
+        qtd_comprimidos: !isPomada && qtdDose ? parseInt(qtdDose, 10) : null,
+        local_aplicacao: isPomada ? (localAplicacao.trim() || null) : null,
         horarios,
         concluido: 0,
-        inicio: inicio.toISOString().split("T")[0],
+        inicio: dataLocal(inicio),
         duracao_days: !usoContinuo && duracaoDays ? Number(duracaoDays) : null,
         uso_continuo: usoContinuo ? 1 : 0,
         paciente_id: paciente.paciente_id,
@@ -162,17 +168,21 @@ export default function NovaMedicamento({ navigation }: any) {
             </Picker>
           </View>
 
-          <Text style={[styles.fieldLabel, { color: cores.text, fontSize: tf(14) }]}>
-            {formatoAtual.concentLabel}
-          </Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
-            placeholder={`Ex: 500`}
-            placeholderTextColor={cores.inputPlaceholder}
-            keyboardType="numeric"
-            value={concentracao}
-            onChangeText={setConcentracao}
-          />
+          {!isPomada && (
+            <>
+              <Text style={[styles.fieldLabel, { color: cores.text, fontSize: tf(14) }]}>
+                {formatoAtual.concentLabel}
+              </Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+                placeholder="Ex: 500"
+                placeholderTextColor={cores.inputPlaceholder}
+                keyboardType="numeric"
+                value={concentracao}
+                onChangeText={setConcentracao}
+              />
+            </>
+          )}
         </View>
 
         {/* ━━━━━━━━━━━━━━━━━━ Bloco 2 — Posologia ━━━━━━━━━━━━━━━━━━ */}
@@ -180,34 +190,45 @@ export default function NovaMedicamento({ navigation }: any) {
           <View style={styles.blocoHeader}>
             <Ionicons name="timer-outline" size={20} color={cores.primary} />
             <Text style={[styles.blocoTitulo, { color: cores.text, fontSize: tf(15) }]}>
-              Posologia
+              {isPomada ? "Aplicação" : "Posologia"}
             </Text>
           </View>
 
-          <View style={styles.posologiaRow}>
-            <Text style={[styles.posologiaTexto, { color: cores.text, fontSize: tf(15) }]}>
-              {formatoAtual.verb}
-            </Text>
+          {isPomada ? (
             <TextInput
-              style={[styles.posologiaInput, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
-              placeholder="0"
+              style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+              placeholder="Aplicar onde? Ex: nos pés, nas costas"
               placeholderTextColor={cores.inputPlaceholder}
-              keyboardType="numeric"
-              value={qtdDose}
-              onChangeText={setQtdDose}
+              value={localAplicacao}
+              onChangeText={setLocalAplicacao}
             />
-            <Text style={[styles.posologiaTexto, { color: cores.text, fontSize: tf(15) }]}>
-              {formatoAtual.unit} por dose
-            </Text>
-          </View>
+          ) : (
+            <>
+              <View style={styles.posologiaRow}>
+                <Text style={[styles.posologiaTexto, { color: cores.text, fontSize: tf(15) }]}>
+                  {formatoAtual.verb}
+                </Text>
+                <TextInput
+                  style={[styles.posologiaInput, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
+                  placeholder="0"
+                  placeholderTextColor={cores.inputPlaceholder}
+                  keyboardType="numeric"
+                  value={qtdDose}
+                  onChangeText={setQtdDose}
+                />
+                <Text style={[styles.posologiaTexto, { color: cores.text, fontSize: tf(15) }]}>
+                  {formatoAtual.unit} por dose
+                </Text>
+              </View>
 
-          {/* Preview da sentença */}
-          <View style={[styles.sentencaPreview, { backgroundColor: cores.primary + "15", borderColor: cores.primary + "40" }]}>
-            <Ionicons name="information-circle-outline" size={16} color={cores.primary} />
-            <Text style={[styles.sentencaTexto, { color: cores.primary, fontSize: tf(13) }]}>
-              {sentencaDosagem}
-            </Text>
-          </View>
+              <View style={[styles.sentencaPreview, { backgroundColor: cores.primary + "15", borderColor: cores.primary + "40" }]}>
+                <Ionicons name="information-circle-outline" size={16} color={cores.primary} />
+                <Text style={[styles.sentencaTexto, { color: cores.primary, fontSize: tf(13) }]}>
+                  {sentencaDosagem}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* ━━━━━━━━━━━━━━━━━━ Bloco 3 — Agendamento ━━━━━━━━━━━━━━━━━━ */}

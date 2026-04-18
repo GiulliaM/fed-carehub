@@ -131,13 +131,19 @@ export default function DetalhesMedicamento({ route, navigation }: any) {
               value={`${medicamento.mg}`}
             />
           )}
-          {medicamento.qtd_comprimidos && (
+          {medicamento.dosagem === "Pomada" && medicamento.local_aplicacao ? (
+            <InfoRow
+              icon="hand-left-outline"
+              label="Aplicar em"
+              value={medicamento.local_aplicacao}
+            />
+          ) : medicamento.qtd_comprimidos ? (
             <InfoRow
               icon="timer-outline"
               label="Posologia"
-              value={`${medicamento.qtd_comprimidos} ${medicamento.dosagem === "Gotas" ? "gotas" : medicamento.dosagem === "Mililitros" ? "mL" : medicamento.dosagem === "Injecao" ? "mL" : medicamento.dosagem === "Pomada" ? "g" : "comprimido(s)"} por vez`}
+              value={`${medicamento.qtd_comprimidos} ${medicamento.dosagem === "Gotas" ? "gotas" : medicamento.dosagem === "Mililitros" ? "mL" : medicamento.dosagem === "Injecao" ? "mL" : "comprimido(s)"} por vez`}
             />
-          )}
+          ) : null}
           <InfoRow
             icon="time-outline"
             label="Horarios"
@@ -181,13 +187,6 @@ export default function DetalhesMedicamento({ route, navigation }: any) {
               value={`${medicamento.intervalo_horas}h`}
             />
           )}
-          <InfoRow
-            icon="information-circle-outline"
-            label="Status"
-            value={
-              medicamento.concluido === 1 ? "Tomado" : "Pendente"
-            }
-          />
         </View>
 
         {/* Botao Editar */}
