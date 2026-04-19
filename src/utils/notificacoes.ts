@@ -1,23 +1,18 @@
-/**
- * Serviço de notificações locais para lembretes de tarefas.
- * Som: use o arquivo em assets/sounds/notificacao.mp3 (veja README na pasta).
- */
-// Serviço pra mandar notificação no celular avisando das tarefas, tipo "ei, não esquece!"
 import AsyncStorage from "@react-native-async-storage/async-storage";
-//import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
 
-const CANAL_ID = "carehub-lembretes";
 const PREF_ATIVO = "notificacoes_lembrete_ativo";
-/*
-// Nome do som customizado (arquivo em assets/sounds/notificacao.mp3 ou .wav)
-// No Android o canal usa este nome quando o arquivo está em res/raw/notificacao
-export const NOME_SOM_NOTIFICACAO = "notificacao";
+
+// Notificações desabilitadas temporariamente — expo-notifications SDK 53 causa
+// crash nativo no Expo Go ao ser importado. Reativar após migrar para dev build/APK.
+
+export async function configurarCanal(): Promise<boolean> {
+  return false;
+}
 
 export async function notificacoesLembreteAtivas(): Promise<boolean> {
   try {
     const v = await AsyncStorage.getItem(PREF_ATIVO);
-    return v === "true";
+    return v !== "false";
   } catch {
     return true;
   }
@@ -27,80 +22,30 @@ export async function setNotificacoesLembreteAtivas(ativo: boolean): Promise<voi
   await AsyncStorage.setItem(PREF_ATIVO, ativo ? "true" : "false");
 }
 
-
-export async function configurarCanal(): Promise<boolean> {
-  const { status: existing } = await Notifications.getPermissionsAsync();
-  let final = existing;
-  if (existing !== "granted") {
-    const { status } = await Notifications.requestPermissionsAsync();
-    final = status;
-  }
-  if (final !== "granted") return false;
-
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync(CANAL_ID, {
-      name: "Lembretes de tarefas",
-      importance: Notifications.AndroidImportance.HIGH,
-      enableVibrate: true,
-    });
-  }
-  return true;
-}
-
-
 export async function agendarLembreteTarefa(
-  tarefaId: number,
-  titulo: string,
-  data: string,
-  hora: string | null
+  _tarefaId: number,
+  _titulo: string,
+  _data: string,
+  _hora: string | null
 ): Promise<string | null> {
-  const ativo = await notificacoesLembreteAtivas();
-  if (!ativo) return null;
-
-  if (!data || !hora) return null;
-  const [y, m, d] = data.split("-").map(Number);
-  const [hh, mm] = (hora || "09:00").split(":").map(Number);
-  const date = new Date(y, m - 1, d, hh, mm, 0);
-  if (date.getTime() <= Date.now()) return null;
-
-  const ok = await configurarCanal();
-  if (!ok) return null;
-
-  const identifier = "tarefa_" + tarefaId;
-  await Notifications.cancelScheduledNotificationAsync(identifier);
-
-  const content: Notifications.NotificationContentInput = {
-    title: "Lembrete: Tarefa",
-    body: titulo || "Tarefa agendada",
-    sound: true,
-    data: { tarefaId, tipo: "tarefa" },
-  };
-
-  const trigger = {
-    date,
-    channelId: CANAL_ID,
-  };
-
-  const id = await Notifications.scheduleNotificationAsync({
-    identifier,
-    content,
-    trigger,
-  });
-  return id;
+  return null;
 }
 
-export async function cancelarLembreteTarefa(tarefaId: number): Promise<void> {
-  await Notifications.cancelScheduledNotificationAsync("tarefa_" + tarefaId);
+export async function cancelarLembreteTarefa(_tarefaId: number): Promise<void> {}
+
+export async function agendarLembreteMedicamento(
+  _medicamentoId: number,
+  _nome: string,
+  _horario: string
+): Promise<string | null> {
+  return null;
 }
 
+export async function cancelarLembreteMedicamento(
+  _medicamentoId: number,
+  _horario: string
+): Promise<void> {}
 
-export async function cancelarTodosLembretes(): Promise<void> {
-  const pendentes = await Notifications.getAllScheduledNotificationsAsync();
-  for (const n of pendentes) {
-    if (n.identifier?.startsWith("tarefa_")) {
-      await Notifications.cancelScheduledNotificationAsync(n.identifier);
-    }
-  }
-}
+export async function cancelarTodosLembretes(): Promise<void> {}
 
-*/
+export async function obterERegistrarPushToken(): Promise<void> {}

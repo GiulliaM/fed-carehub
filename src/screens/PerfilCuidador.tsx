@@ -11,6 +11,7 @@ import {
   Switch,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,6 +34,7 @@ const ESPECIALIDADES_SUGERIDAS = [
 export default function PerfilCuidador({ navigation }: any) {
   const { cores } = useTema();
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [bio, setBio] = useState("");
   const [precoHora, setPrecoHora] = useState("");
@@ -77,6 +79,12 @@ export default function PerfilCuidador({ navigation }: any) {
       carregarPerfil();
     }, [carregarPerfil])
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await carregarPerfil();
+    setRefreshing(false);
+  }, [carregarPerfil]);
 
   const adicionarEspecialidade = (tag: string) => {
     const t = tag.trim();
@@ -142,6 +150,9 @@ export default function PerfilCuidador({ navigation }: any) {
         <ScrollView
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
+          }
           showsVerticalScrollIndicator={false}
         >
           <View style={[styles.card, { backgroundColor: cores.card }]}>

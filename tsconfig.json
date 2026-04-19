@@ -4,5 +4,6 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
-  }
+  },
+  "exclude": ["src/ferramentas/logicaData.ts"]
 }

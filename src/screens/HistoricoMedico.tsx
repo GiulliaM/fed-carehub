@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -65,6 +66,7 @@ export default function HistoricoMedico({ route, navigation }: any) {
   const { cores } = useTema();
   const [paciente, setPaciente] = useState<any>(route.params?.paciente || null);
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editando, setEditando] = useState(false);
 
@@ -102,7 +104,7 @@ export default function HistoricoMedico({ route, navigation }: any) {
     try {
       setCarregando(true);
       const res = await api.get(`/pacientes/${p.paciente_id}/historico-medico`);
-      const h = res || {};
+      const h: any = res.data || {};
       setCondicoesCronicas(h.condicoes_cronicas || "");
       setAlergias(h.alergias || "");
       setHistoricoCirurgico(h.historico_cirurgico || "");
@@ -142,6 +144,12 @@ export default function HistoricoMedico({ route, navigation }: any) {
       carregarHistorico();
     }, [carregarHistorico])
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await carregarHistorico();
+    setRefreshing(false);
+  }, [carregarHistorico]);
 
   const adicionarContato = () => {
     setContatosEmergencia([...contatosEmergencia, { nome: "", parentesco: "", telefone: "" }]);
@@ -257,6 +265,9 @@ export default function HistoricoMedico({ route, navigation }: any) {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
+          }
         >
           {!editando ? (
             <>

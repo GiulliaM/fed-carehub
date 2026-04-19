@@ -8,21 +8,29 @@ import {
   ScrollView,
   ActivityIndicator,
   Image,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import dayjs from "dayjs";
 import { useTema } from "../context/ThemeContext";
 import { sair, obterDadosUsuario } from "../utils/autenticacao";
-import { termoPaciente } from "../utils/terminologia";
+import { termoPaciente, termoPacientePlural } from "../utils/terminologia";
 import api from "../config/api";
+
+function calcularIdade(dataNasc?: string | null, idadeEstatica?: number | null): string {
+  if (dataNasc) return `${dayjs().diff(dayjs(dataNasc), "year")} anos`;
+  return idadeEstatica != null ? `${idadeEstatica} anos` : "N/I";
+}
 
 export default function Perfil({ navigation }: any) {
   const [user, setUser] = useState<any>(null);
   const [pacientes, setPacientes] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { cores, nomeTema, definirNomeTema, tamanhoFonte, definirTamanhoFonte, tf } =
     useTema();
 
@@ -43,14 +51,14 @@ export default function Perfil({ navigation }: any) {
 
       try {
         const res = await api.get(`/usuarios/perfil/${meta.usuario_id}`);
-        if (res && res.nome) {
+        if (res && res.data?.nome) {
           const userData = {
-            usuario_id: res.usuario_id,
-            nome: res.nome,
-            email: res.email,
-            tipo: res.tipo,
-            telefone: res.telefone || "",
-            foto_url: res.foto_url || "",
+            usuario_id: res.data.usuario_id,
+            nome: res.data.nome,
+            email: res.data.email,
+            tipo: res.data.tipo,
+            telefone: res.data.telefone || "",
+            foto_url: res.data.foto_url || "",
           };
           setUser(userData);
           await AsyncStorage.setItem("usuario", JSON.stringify(userData));
@@ -58,8 +66,9 @@ export default function Perfil({ navigation }: any) {
       } catch {}
 
       try {
-        const pacienteRes = await api.get("/pacientes");
-        const lista = Array.isArray(pacienteRes) ? pacienteRes : [];
+        const endpoint = meta.tipo === "cuidador" ? "/vinculos/meus-pacientes" : "/pacientes";
+        const pacienteRes = await api.get(endpoint);
+        const lista = Array.isArray(pacienteRes.data) ? pacienteRes.data : [];
         setPacientes(lista);
       } catch {
         setPacientes([]);
@@ -79,6 +88,12 @@ export default function Perfil({ navigation }: any) {
       fetchProfile();
     }, [fetchProfile])
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchProfile();
+    setRefreshing(false);
+  }, [fetchProfile]);
 
   async function handleLogout() {
     await sair();
@@ -102,7 +117,12 @@ export default function Perfil({ navigation }: any) {
           <ActivityIndicator size="large" color={cores.primary} />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
+          }
+        >
           <Text
             style={[
               styles.title,
@@ -217,8 +237,8 @@ export default function Perfil({ navigation }: any) {
                 ]}
               >
                 {pacientes.length > 1
-                  ? `Meus ${termo}s`
-                  : `Meu ${termo}`}
+                  ? (user?.tipo === "cuidador" ? `Minhas ${termoPacientePlural(user?.tipo)}` : `Meus ${termoPacientePlural(user?.tipo)}`)
+                  : (user?.tipo === "cuidador" ? `Minha ${termo}` : `Meu ${termo}`)}
               </Text>
             </View>
 
@@ -229,7 +249,9 @@ export default function Perfil({ navigation }: any) {
                   { color: cores.muted, fontSize: tf(14) },
                 ]}
               >
-                Nenhum {termo.toLowerCase()} vinculado.
+                {user?.tipo === "cuidador"
+                  ? `Nenhuma ${termo.toLowerCase()} vinculada.`
+                  : `Nenhum ${termo.toLowerCase()} vinculado.`}
               </Text>
             ) : (
               pacientes.map((p: any) => (
@@ -253,7 +275,7 @@ export default function Perfil({ navigation }: any) {
                         { color: cores.muted, fontSize: tf(12) },
                       ]}
                     >
-                      Idade: {p.idade || "N/I"}
+                      Idade: {calcularIdade(p.data_nascimento, p.idade)}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -272,13 +294,15 @@ export default function Perfil({ navigation }: any) {
             )}
 
             <View style={styles.pacienteActions}>
-              <TouchableOpacity
-                style={[styles.smallBtn, { backgroundColor: cores.primary }]}
-                onPress={() => navigation.navigate("CadastrarPaciente")}
-              >
-                <Ionicons name="add-outline" size={16} color="#fff" />
-                <Text style={styles.smallBtnText}>Cadastrar</Text>
-              </TouchableOpacity>
+              {user?.tipo !== "cuidador" && (
+                <TouchableOpacity
+                  style={[styles.smallBtn, { backgroundColor: cores.primary }]}
+                  onPress={() => navigation.navigate("CadastrarPaciente")}
+                >
+                  <Ionicons name="add-outline" size={16} color="#fff" />
+                  <Text style={styles.smallBtnText}>Cadastrar</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={[
                   styles.smallBtn,

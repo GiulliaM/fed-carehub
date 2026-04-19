@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   StyleSheet,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -22,6 +23,11 @@ import { termoPaciente } from "../utils/terminologia";
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 dayjs.locale("pt-br");
+
+function calcularIdade(dataNasc?: string | null, idadeEstatica?: number | null): string {
+  if (dataNasc) return `${dayjs().diff(dayjs(dataNasc), "year")} anos`;
+  return idadeEstatica != null ? `${idadeEstatica} anos` : "N/I";
+}
 
 export default function Home({ navigation }: any) {
   const { cores, tf } = useTema();
@@ -41,6 +47,8 @@ export default function Home({ navigation }: any) {
     medConcluidos: 0,
     medPendentes: 0,
   });
+
+  const [refreshing, setRefreshing] = useState(false);
 
   const hoje = dayjs().format("YYYY-MM-DD");
   const termo = termoPaciente(user?.tipo);
@@ -86,42 +94,29 @@ export default function Home({ navigation }: any) {
   const carregarDashboard = useCallback(async () => {
     if (!pacienteAtivo?.paciente_id) return;
     try {
-      const [tarefas, med] = await Promise.all([
+      const [tarefas, agenda] = await Promise.all([
         api.get(`/tarefas?paciente_id=${pacienteAtivo.paciente_id}`),
-        api.get(`/medicamentos/${pacienteAtivo.paciente_id}`),
+        api.get(`/medicamentos/${pacienteAtivo.paciente_id}/agenda/${hoje}`),
       ]);
 
       const tarefasHoje = (Array.isArray(tarefas.data) ? tarefas.data : []).filter(
-        (t: any) => t.data === hoje
+        (t: any) => String(t.data).substring(0, 10) === hoje
       );
       const tarefasConcluidas = tarefasHoje.filter(
         (t: any) => t.concluida === 1
       ).length;
 
-      const medHoje = (Array.isArray(med.data) ? med.data : []).filter((m: any) => {
-        if (!m.inicio) return false;
-        const di = dayjs(m.inicio);
-        if (m.uso_continuo == 1) return dayjs(hoje).isSameOrAfter(di, "day");
-        if (m.duracao_days > 0) {
-          const df = di.add(m.duracao_days - 1, "day");
-          return (
-            dayjs(hoje).isSameOrAfter(di, "day") &&
-            dayjs(hoje).isSameOrBefore(df, "day")
-          );
-        }
-        return dayjs(hoje).isSame(di, "day");
-      });
-      const medConcluidos = medHoje.filter(
-        (m: any) => m.concluido === 1
-      ).length;
+      const slots = Array.isArray(agenda.data) ? agenda.data : [];
+      const medTotal = slots.length;
+      const medConcluidos = slots.filter((s: any) => s.tomado).length;
 
       setResumo({
         tarefasTotal: tarefasHoje.length,
         tarefasConcluidas,
         tarefasPendentes: tarefasHoje.length - tarefasConcluidas,
-        medTotal: medHoje.length,
+        medTotal,
         medConcluidos,
-        medPendentes: medHoje.length - medConcluidos,
+        medPendentes: medTotal - medConcluidos,
       });
 
       try {
@@ -164,11 +159,22 @@ export default function Home({ navigation }: any) {
     await AsyncStorage.setItem("paciente", JSON.stringify(p));
   };
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }, []);
+
   return (
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: cores.background }]}
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
+        }
+      >
         {carregando && (
           <ActivityIndicator
             size="large"
@@ -277,7 +283,7 @@ export default function Home({ navigation }: any) {
                   </Text>
                   <Text style={[styles.cardInfo, { color: cores.text, fontSize: tf(15) }]}>
                     <Text style={[styles.cardLabel, { color: cores.primary }]}>Idade: </Text>
-                    {pacienteAtivo.idade || "Nao informada"}
+                    {calcularIdade(pacienteAtivo.data_nascimento, pacienteAtivo.idade)}
                   </Text>
 
                   <View style={styles.patientActions}>

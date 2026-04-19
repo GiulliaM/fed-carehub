@@ -28,7 +28,7 @@ const CLARO = {
   inputPlaceholder: "#9CA3AF",
   tabBar: "#FFFFFF",
   tabBarBorder: "#E5E7EB",
-  statusBar: "dark-content" as const,
+  statusBar: "dark-content" as "dark-content" | "light-content",
 };
 
 const ESCURO = {
@@ -47,7 +47,7 @@ const ESCURO = {
   inputPlaceholder: "#64748B",
   tabBar: "#1E293B",
   tabBarBorder: "#334155",
-  statusBar: "light-content" as const,
+  statusBar: "light-content" as "dark-content" | "light-content",
 };
 
 export type Tema = typeof CLARO;

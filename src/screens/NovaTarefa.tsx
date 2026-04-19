@@ -154,7 +154,7 @@ export default function NovaTarefa({ navigation, route }: any) {
           paciente_id: paciente.paciente_id,
         };
         const res = await api.post("/tarefas", payload);
-        const tarefaId = res?.tarefa_id;
+        const tarefaId = res?.data?.tarefa_id;
         if (tarefaId) {
           await agendarLembreteTarefa(
             tarefaId,

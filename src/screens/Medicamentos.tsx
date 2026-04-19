@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, LocaleConfig } from "react-native-calendars";
@@ -16,6 +17,7 @@ import { useTema } from "../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 import api from "../config/api";
+import { agendarLembreteMedicamento } from "../utils/notificacoes";
 
 import dayjs from "dayjs";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
@@ -117,6 +119,7 @@ export default function Medicamentos({ navigation }: any) {
   const [medicamentos, setMedicamentos] = useState<any[]>([]);
   const [doses, setDoses] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [pacienteId, setPacienteId] = useState<number | null>(null);
 
   // Ao clicar na aba de medicamentos já estando nela → volta para hoje
@@ -156,8 +159,29 @@ export default function Medicamentos({ navigation }: any) {
         api.get(`/medicamentos/${paciente.paciente_id}/doses/${dataSelecionada}`),
       ]);
 
-      setMedicamentos(Array.isArray(medRes.data) ? medRes.data : []);
-      setDoses(Array.isArray(dosesRes.data) ? dosesRes.data : []);
+      const listaMeds = Array.isArray(medRes.data) ? medRes.data : [];
+      const listaDoses = Array.isArray(dosesRes.data) ? dosesRes.data : [];
+      setMedicamentos(listaMeds);
+      setDoses(listaDoses);
+
+      // Agendar notificações de medicamentos para hoje
+      if (dataSelecionada === hoje) {
+        const tomadosMap: Record<string, boolean> = {};
+        listaDoses.forEach((d: any) => {
+          const hor = String(d.horario ?? "").substring(0, 5);
+          tomadosMap[`${d.medicamento_id}-${hor}`] = !!d.tomado;
+        });
+        for (const med of listaMeds) {
+          if (!medicamentoAtivoNaData(med, dataSelecionada)) continue;
+          const horarios = Array.isArray(med.horarios) ? med.horarios : [];
+          for (const horario of horarios) {
+            const hor = String(horario).substring(0, 5);
+            if (!tomadosMap[`${med.medicamento_id}-${hor}`]) {
+              agendarLembreteMedicamento(med.medicamento_id, (med.nome ?? "").trim(), hor).catch(() => {});
+            }
+          }
+        }
+      }
     } catch {
       Alert.alert("Erro", "Não foi possível carregar os medicamentos.");
     } finally {
@@ -173,6 +197,12 @@ export default function Medicamentos({ navigation }: any) {
   }, []);
 
   useFocusEffect(useCallback(() => { fetchTudo(); }, [fetchTudo]));
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchTudo();
+    setRefreshing(false);
+  }, [fetchTudo]);
 
   const handleDiaPress = useCallback(
     (d: { dateString: string }) => {
@@ -358,6 +388,9 @@ export default function Medicamentos({ navigation }: any) {
             keyExtractor={(item) => item.key}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
+            }
             renderItem={({ item }) => {
               const atrasado = dataSelecionada === hoje && !item.tomado && item.horario < agoraHora;
               return (

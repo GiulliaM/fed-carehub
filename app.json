@@ -10,8 +10,13 @@
     "android": {
       "package": "com.giulliam.fedcarehub",
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#60A5FA"
+      },
+      "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.POST_NOTIFICATIONS"
+      ]
     },
     "extra": {
       "eas": {
@@ -19,7 +24,13 @@
       }
     },
     "plugins": [
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "color": "#60A5FA"
+        }
+      ]
     ]
   }
 }

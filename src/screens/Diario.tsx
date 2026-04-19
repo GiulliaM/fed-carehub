@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -37,6 +38,7 @@ export default function Diario({ navigation }: any) {
   const { cores, tf } = useTema();
   const [registros, setRegistros] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchRegistros = useCallback(async () => {
     setCarregando(true);
@@ -60,6 +62,12 @@ export default function Diario({ navigation }: any) {
       fetchRegistros();
     }, [fetchRegistros])
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchRegistros();
+    setRefreshing(false);
+  }, [fetchRegistros]);
 
   const confirmarExclusao = (registroId: number) => {
     Alert.alert(
@@ -124,6 +132,9 @@ export default function Diario({ navigation }: any) {
             data={registros}
             keyExtractor={(item) =>
               item.registro_id?.toString() || Math.random().toString()
+            }
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
             }
             renderItem={({ item }) => (
               <View

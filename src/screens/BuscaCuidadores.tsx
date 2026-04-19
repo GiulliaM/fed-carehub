@@ -10,6 +10,7 @@ import {
   Alert,
   Linking,
   Image,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -120,6 +121,7 @@ export default function BuscaCuidadores({ navigation }: any) {
   const [bairro, setBairro] = useState("");
   const [lista, setLista] = useState<CuidadorItem[]>([]);
   const [carregando, setCarregando] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [buscou, setBuscou] = useState(false);
 
   const buscar = useCallback(async () => {
@@ -145,6 +147,12 @@ export default function BuscaCuidadores({ navigation }: any) {
       setCarregando(false);
     }
   }, [especialidade, cidade, bairro, navigation]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await buscar();
+    setRefreshing(false);
+  }, [buscar]);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: cores.background }]}>
@@ -208,6 +216,9 @@ export default function BuscaCuidadores({ navigation }: any) {
               keyExtractor={(item) => String(item.id)}
               contentContainerStyle={styles.list}
               renderItem={({ item }) => <CardCuidador item={item} cores={cores} />}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
+              }
             />
           )}
         </>

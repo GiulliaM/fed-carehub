@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTema } from "../context/ThemeContext";
 import api from "../config/api";
+import { obterERegistrarPushToken } from "../utils/notificacoes";
 
 const STEPS = [
   { id: 1, label: "Auth", icon: "shield-checkmark-outline" as const },
@@ -108,6 +109,7 @@ export default function CarregandoDados({ navigation }: any) {
       setCurrentStep(4);
       await delay(600);
 
+      await obterERegistrarPushToken();
       navigation.reset({ index: 0, routes: [{ name: "Abas" }] });
     } catch {
       setMessage("Erro ao carregar. Tente novamente.");

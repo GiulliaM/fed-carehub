@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, LocaleConfig } from "react-native-calendars";
@@ -34,6 +35,7 @@ export default function Tarefas({ navigation }: any) {
   const { cores, tf, nomeTema } = useTema();
   const [tarefas, setTarefas] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const hoje = dayjs().format("YYYY-MM-DD");
   const [dataSelecionada, setDataSelecionada] = useState(hoje);
@@ -92,6 +94,12 @@ export default function Tarefas({ navigation }: any) {
       fetchTarefas();
     }, [fetchTarefas])
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchTarefas();
+    setRefreshing(false);
+  }, [fetchTarefas]);
 
   const tarefasDoDia = useMemo(
     () =>
@@ -212,6 +220,9 @@ export default function Tarefas({ navigation }: any) {
           <FlatList
             data={tarefasDoDia}
             keyExtractor={(i) => i.tarefa_id.toString()}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
+            }
             renderItem={({ item }) => (
               <TouchableOpacity
                 activeOpacity={0.7}

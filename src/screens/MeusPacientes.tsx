@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,6 +24,7 @@ export default function MeusPacientes({ navigation }: any) {
   const { cores } = useTema();
   const [lista, setLista] = useState<PacienteVinculo[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [modalCodigo, setModalCodigo] = useState(false);
   const [codigo, setCodigo] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -46,6 +48,12 @@ export default function MeusPacientes({ navigation }: any) {
 
   useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await carregar();
+    setRefreshing(false);
+  }, [carregar]);
+
   const aceitarCodigo = async () => {
     const c = codigo.replace(/\D/g, "").trim();
     if (c.length !== 6) {
@@ -58,9 +66,9 @@ export default function MeusPacientes({ navigation }: any) {
       setModalCodigo(false);
       setCodigo("");
       await carregar();
-      if (res?.paciente) {
-        await AsyncStorage.setItem("paciente", JSON.stringify(res.paciente));
-        Alert.alert("Sucesso", "Você foi vinculado ao paciente " + (res.paciente.nome || "") + ". Pode acessar a rotina e o histórico médico.");
+      if (res?.data?.paciente) {
+        await AsyncStorage.setItem("paciente", JSON.stringify(res.data.paciente));
+        Alert.alert("Sucesso", "Você foi vinculado ao paciente " + (res.data.paciente.nome || "") + ". Pode acessar a rotina e o histórico médico.");
       } else {
         Alert.alert("Sucesso", "Vínculo criado. Selecione o paciente na lista para acessar a rotina.");
       }
@@ -111,6 +119,9 @@ export default function MeusPacientes({ navigation }: any) {
               data={lista}
               keyExtractor={(p) => String(p.paciente_id)}
               contentContainerStyle={styles.list}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
+              }
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[styles.card, { backgroundColor: cores.card }]}

@@ -61,9 +61,9 @@ export default function Configuracoes({ navigation }: any) {
           <View style={styles.row}>
             <Ionicons name="notifications-outline" size={28} color={cores.primary} />
             <View style={styles.rowText}>
-              <Text style={[styles.cardTitle, { color: cores.text }]}>Lembretes de tarefas</Text>
+              <Text style={[styles.cardTitle, { color: cores.text }]}>Notificações e lembretes</Text>
               <Text style={[styles.cardSub, { color: cores.muted }]}>
-                Receber notificação no horário de cada tarefa agendada
+                Receber lembretes de tarefas, medicamentos e avisos do diário
               </Text>
             </View>
             <Switch
@@ -73,14 +73,6 @@ export default function Configuracoes({ navigation }: any) {
               thumbColor="#fff"
             />
           </View>
-        </View>
-
-        <View style={[styles.infoCard, { backgroundColor: cores.card }]}>
-          <Ionicons name="information-circle-outline" size={22} color={cores.muted} />
-          <Text style={[styles.infoText, { color: cores.muted }]}>
-            Para usar um som personalizado nos lembretes, coloque o arquivo em:{" "}
-            <Text style={styles.path}>assets/sounds/notificacao.mp3</Text> (ou notificacao.wav). Veja o README na pasta assets/sounds.
-          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -105,13 +97,5 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, marginLeft: 12 },
   cardTitle: { fontSize: 17, fontWeight: "700" },
   cardSub: { fontSize: 14, marginTop: 4 },
-  infoCard: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    padding: 14,
-    borderRadius: 12,
-  },
-  infoText: { flex: 1, fontSize: 14, lineHeight: 20 },
-  path: { fontFamily: "monospace", fontWeight: "600" },
+
 });

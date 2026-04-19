@@ -16,6 +16,7 @@ import { useTema } from "../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../config/api";
 import { Ionicons } from "@expo/vector-icons";
+import dayjs from "dayjs";
 
 const FORMATOS = [
   { label: "Comprimido", value: "Comprimido", unit: "comprimido(s)", verb: "Tomar", concentLabel: "Concentração (mg)" },
@@ -330,7 +331,7 @@ export default function NovaMedicamento({ navigation }: any) {
           >
             <Ionicons name="calendar-outline" size={20} color={cores.text} />
             <Text style={[styles.btnSelectText, { color: cores.text, fontSize: tf(15) }]}>
-              Início: {inicio.toLocaleDateString("pt-BR")}
+              Início: {dayjs(inicio).format("DD/MM/YYYY")}
             </Text>
           </TouchableOpacity>
 

@@ -15,6 +15,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../config/api";
 import { useTema } from "../context/ThemeContext";
+import dayjs from "dayjs";
 
 const FORMATOS = [
   { label: "Comprimido", value: "Comprimido", unit: "comprimido(s)", verb: "Tomar", concentLabel: "Concentração (mg)" },
@@ -332,7 +333,7 @@ export default function EditMedicamento({ route, navigation }: any) {
           >
             <Ionicons name="calendar-outline" size={20} color={cores.text} />
             <Text style={[{ color: cores.text, fontWeight: "600" }]}>
-              Início: {inicio.toLocaleDateString("pt-BR")}
+              Início: {dayjs(inicio).format("DD/MM/YYYY")}
             </Text>
           </TouchableOpacity>
 
