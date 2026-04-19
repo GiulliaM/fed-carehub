@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -117,7 +119,8 @@ export default function EditarUsuario({ route, navigation }: any) {
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: cores.background }]}
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={[styles.title, { color: cores.primary }]}>
           Editar Informações do Usuário
         </Text>
@@ -165,6 +168,7 @@ export default function EditarUsuario({ route, navigation }: any) {
           <Text style={styles.btnSecText}>Cancelar</Text>
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

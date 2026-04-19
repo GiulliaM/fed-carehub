@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -321,7 +323,11 @@ export default function EditTarefa({ route, navigation }: any) {
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: cores.background }]}
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text
           style={[
             styles.title,
@@ -451,6 +457,7 @@ export default function EditTarefa({ route, navigation }: any) {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

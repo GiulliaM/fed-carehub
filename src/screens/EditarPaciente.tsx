@@ -72,6 +72,27 @@ const CATEGORIAS_CUIDADO = [
   },
 ];
 
+// ─── Helpers de data ────────────────────────────────────────────────────────
+function isoParaDDMMAAAA(iso: string): string {
+  const s = iso.split("T")[0]; // "AAAA-MM-DD"
+  const [y, m, d] = s.split("-");
+  if (!y || !m || !d) return "";
+  return `${d}/${m}/${y}`;
+}
+
+function ddmmAAAAParaIso(ddmmaaaa: string): string {
+  const [d, m, y] = ddmmaaaa.split("/");
+  if (!d || !m || !y) return ddmmaaaa;
+  return `${y}-${m}-${d}`;
+}
+
+function mascaraData(raw: string): string {
+  const nums = raw.replace(/\D/g, "").slice(0, 8);
+  if (nums.length <= 2) return nums;
+  if (nums.length <= 4) return `${nums.slice(0, 2)}/${nums.slice(2)}`;
+  return `${nums.slice(0, 2)}/${nums.slice(2, 4)}/${nums.slice(4)}`;
+}
+
 // ─── Componente ───────────────────────────────────────────────────────────────
 
 export default function EditarPaciente({ route, navigation }: any) {
@@ -109,7 +130,7 @@ export default function EditarPaciente({ route, navigation }: any) {
     setPaciente(p);
     setNome(p.nome || "");
     setGenero(p.genero || "");
-    setDataNascimento(p.data_nascimento ? p.data_nascimento.split("T")[0] : "");
+    setDataNascimento(p.data_nascimento ? isoParaDDMMAAAA(p.data_nascimento) : "");
     setResponsavelLegal(p.responsavel_legal || "");
     setTelefoneContato(p.telefone_contato || "");
     setRestricoes(p.restricoes_alimentares || "");
@@ -149,7 +170,7 @@ export default function EditarPaciente({ route, navigation }: any) {
       await api.patch(`/pacientes/${paciente.paciente_id}`, {
         nome: nome.trim(),
         genero: genero.trim() || null,
-        data_nascimento: dataNascimento.trim() || null,
+        data_nascimento: dataNascimento.trim() ? ddmmAAAAParaIso(dataNascimento.trim()) : null,
         responsavel_legal: responsavelLegal.trim() || null,
         telefone_contato: telefoneContato.trim() || null,
         categorias_cuidado: categorias.length > 0 ? categorias : null,
@@ -161,7 +182,7 @@ export default function EditarPaciente({ route, navigation }: any) {
         ...paciente,
         nome: nome.trim(),
         genero: genero.trim() || null,
-        data_nascimento: dataNascimento.trim() || null,
+        data_nascimento: dataNascimento.trim() ? ddmmAAAAParaIso(dataNascimento.trim()) : null,
         responsavel_legal: responsavelLegal.trim() || null,
         telefone_contato: telefoneContato.trim() || null,
         categorias_cuidado: categorias,
@@ -268,11 +289,12 @@ export default function EditarPaciente({ route, navigation }: any) {
             />
             <TextInput
               style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
-              placeholder="Data de nascimento (AAAA-MM-DD)"
+              placeholder="Data de nascimento (DD/MM/AAAA)"
               placeholderTextColor={cores.inputPlaceholder}
               value={dataNascimento}
-              onChangeText={setDataNascimento}
+              onChangeText={(t) => setDataNascimento(mascaraData(t))}
               keyboardType="numeric"
+              maxLength={10}
             />
             <TextInput
               style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}

@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -90,9 +91,13 @@ export default function Login({ navigation }: any) {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: cores.background }]}>
       <KeyboardAvoidingView
-        style={styles.container}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
         <Text style={[styles.title, { color: cores.primary }]}>Entrar</Text>
 
         <TextInput
@@ -146,6 +151,7 @@ export default function Login({ navigation }: any) {
             Não tem uma conta? Cadastre-se
           </Text>
         </TouchableOpacity>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

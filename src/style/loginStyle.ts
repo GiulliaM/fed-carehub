@@ -6,9 +6,10 @@ export default StyleSheet.create({
     justifyContent: "center",
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: 24,
+    paddingVertical: 24,
   },
   title: {
     fontSize: 28,

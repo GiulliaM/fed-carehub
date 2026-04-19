@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -201,7 +203,8 @@ export default function NovaTarefa({ navigation, route }: any) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: cores.background }]}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={[styles.title, { color: cores.primary }]}>
           {editingTarefa ? "Editar Tarefa" : "Nova Tarefa"}
         </Text>
@@ -306,6 +309,7 @@ export default function NovaTarefa({ navigation, route }: any) {
           <Text style={[styles.btnCancelarText, { color: cores.primary }]}>Cancelar</Text>
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

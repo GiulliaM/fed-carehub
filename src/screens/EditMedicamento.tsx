@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -155,7 +157,8 @@ export default function EditMedicamento({ route, navigation }: any) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: cores.background }]}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={[styles.title, { color: cores.primary, fontSize: tf(24) }]}>
           Editar Medicamento
         </Text>
@@ -369,6 +372,7 @@ export default function EditMedicamento({ route, navigation }: any) {
           <Text style={[{ color: cores.muted, fontWeight: "600", fontSize: 16 }]}>Cancelar</Text>
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
