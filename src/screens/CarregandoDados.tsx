@@ -1,138 +1,184 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Animated } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, StyleSheet, Animated, Easing } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTema } from "../context/ThemeContext";
 import api from "../config/api";
 
+const STEPS = [
+  { id: 1, label: "Auth", icon: "shield-checkmark-outline" as const },
+  { id: 2, label: "Paciente", icon: "person-outline" as const },
+  { id: 3, label: "Dados", icon: "sync-outline" as const },
+  { id: 4, label: "Pronto", icon: "checkmark-circle-outline" as const },
+];
+
 export default function CarregandoDados({ navigation }: any) {
   const { cores } = useTema();
   const [progress, setProgress] = useState(0);
-  const [message, setMessage] = useState("Carregando seus dados...");
-  const [fillAnimation] = useState(new Animated.Value(0));
+  const [message, setMessage] = useState("Iniciando...");
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.14,
+          duration: 750,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.ease),
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 750,
+          useNativeDriver: true,
+          easing: Easing.in(Easing.ease),
+        }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, []);
+
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: progress,
+      duration: 450,
+      useNativeDriver: false,
+    }).start();
+  }, [progress]);
 
   useEffect(() => {
     loadAllData();
   }, []);
 
-  // Anima o preenchimento do coração conforme o progresso
-  useEffect(() => {
-    Animated.timing(fillAnimation, {
-      toValue: progress,
-      duration: 500,
-      useNativeDriver: false,
-    }).start();
-  }, [progress]);
-
   async function loadAllData() {
     try {
-      setMessage("Verificando autenticacao...");
+      setMessage("Verificando autenticação...");
       setProgress(0.2);
-      await new Promise(resolve => setTimeout(resolve, 300));
+      setCurrentStep(1);
+      await delay(350);
 
       const rawUser = await AsyncStorage.getItem("usuario");
       if (!rawUser) {
-        console.log("User not found, going back to login");
         navigation.reset({ index: 0, routes: [{ name: "BoasVindas" }] });
         return;
       }
 
-      const userData = JSON.parse(rawUser);
-      console.log("User authenticated:", userData.nome);
-
       setMessage("Carregando dados do paciente...");
       setProgress(0.5);
-      await new Promise(resolve => setTimeout(resolve, 300));
+      setCurrentStep(2);
+      await delay(300);
 
       let paciente = null;
       try {
-        const pacienteRes = await api.get("/pacientes");
-        if (Array.isArray(pacienteRes.data) && pacienteRes.data.length > 0) {
-          paciente = pacienteRes.data[0];
+        const res = await api.get("/pacientes");
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          paciente = res.data[0];
           await AsyncStorage.setItem("paciente", JSON.stringify(paciente));
-          console.log("Patient loaded:", paciente.nome);
-        } else {
-          console.log("No patient registered");
         }
-      } catch (err) {
-        console.log("Error fetching patient:", err);
-      }
+      } catch {}
+
+      setMessage("Sincronizando tarefas e medicamentos...");
+      setProgress(0.8);
+      setCurrentStep(3);
+      await delay(300);
 
       if (paciente?.paciente_id) {
-        setMessage("Sincronizando tarefas...");
-        setProgress(0.75);
-        await new Promise(resolve => setTimeout(resolve, 300));
-
         try {
-          await api.get(`/tarefas?paciente_id=${paciente.paciente_id}`);
-          console.log("Tasks synchronized");
-        } catch (err) {
-          console.log("Error loading tasks:", err);
-        }
-      }
-
-      if (paciente?.paciente_id) {
-        setMessage("Sincronizando medicamentos...");
-        setProgress(0.9);
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        try {
-          await api.get(`/medicamentos/${paciente.paciente_id}`);
-          console.log("Medications synchronized");
-        } catch (err) {
-          console.log("Error loading medications:", err);
-        }
+          await Promise.all([
+            api.get(`/tarefas?paciente_id=${paciente.paciente_id}`),
+            api.get(`/medicamentos/${paciente.paciente_id}`),
+          ]);
+        } catch {}
       }
 
       setMessage("Tudo pronto!");
       setProgress(1);
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      console.log("Loading complete");
+      setCurrentStep(4);
+      await delay(600);
 
       navigation.reset({ index: 0, routes: [{ name: "Abas" }] });
-
-    } catch (error) {
-      console.error("❌ Erro crítico ao carregar dados:", error);
+    } catch {
       setMessage("Erro ao carregar. Tente novamente.");
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await delay(2000);
       navigation.reset({ index: 0, routes: [{ name: "BoasVindas" }] });
     }
   }
 
-  const fillHeight = fillAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0%", "100%"],
-  });
+  const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: cores.background }]}>
-      <View style={styles.content}>
-        {/* Coração com preenchimento animado */}
-        <View style={styles.heartContainer}>
-          {/* Coração de fundo (contorno) */}
-          <Ionicons name="heart-outline" size={200} color={cores.primary} style={styles.heartOutline} />
-          
-          {/* Container para o preenchimento */}
-          <View style={styles.fillContainer}>
-            <Animated.View style={[styles.fillHeart, { height: fillHeight }]}>
-              <Ionicons name="heart" size={200} color={cores.primary} />
-            </Animated.View>
+      <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+
+        {/* Heart logo */}
+        <Animated.View style={{ transform: [{ scale: pulseAnim }], marginBottom: 20 }}>
+          <View style={[styles.heartBg, { backgroundColor: cores.primary + "1A" }]}>
+            <Ionicons name="heart" size={68} color={cores.primary} />
           </View>
+        </Animated.View>
+
+        {/* App name */}
+        <Text style={[styles.appName, { color: cores.primary }]}>CareHub</Text>
+        <Text style={[styles.tagline, { color: cores.muted }]}>
+          Cuidando de quem você ama
+        </Text>
+
+        {/* Step indicators */}
+        <View style={styles.stepsRow}>
+          {STEPS.map((step, i) => {
+            const done = currentStep > step.id;
+            const active = currentStep === step.id;
+            return (
+              <View key={step.id} style={styles.stepItem}>
+                <View
+                  style={[
+                    styles.stepCircle,
+                    { borderColor: done || active ? cores.primary : cores.border },
+                    (done || active) && { backgroundColor: cores.primary },
+                  ]}
+                >
+                  <Ionicons
+                    name={done ? "checkmark" : step.icon}
+                    size={13}
+                    color={done || active ? "#fff" : cores.muted}
+                  />
+                </View>
+                {i < STEPS.length - 1 && (
+                  <View
+                    style={[
+                      styles.stepLine,
+                      { backgroundColor: done ? cores.primary : cores.border },
+                    ]}
+                  />
+                )}
+              </View>
+            );
+          })}
         </View>
 
-        {/* Mensagem de status */}
+        {/* Status message */}
         <Text style={[styles.message, { color: cores.text }]}>{message}</Text>
 
-        {/* Barra de progresso */}
-        <View style={[styles.progressBarContainer, { backgroundColor: cores.muted }]}>
+        {/* Progress bar */}
+        <View style={[styles.progressTrack, { backgroundColor: cores.border }]}>
           <Animated.View
             style={[
-              styles.progressBar,
+              styles.progressFill,
               {
                 backgroundColor: cores.primary,
-                width: fillAnimation.interpolate({
+                width: progressAnim.interpolate({
                   inputRange: [0, 1],
                   outputRange: ["0%", "100%"],
                 }),
@@ -141,67 +187,67 @@ export default function CarregandoDados({ navigation }: any) {
           />
         </View>
 
-        {/* Porcentagem */}
-        <Text style={[styles.percentage, { color: cores.primary }]}>
+        <Text style={[styles.percent, { color: cores.primary }]}>
           {Math.round(progress * 100)}%
         </Text>
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   content: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 40,
   },
-  heartContainer: {
-    position: "relative",
-    width: 200,
-    height: 200,
-    marginBottom: 40,
+  heartBg: {
+    width: 116,
+    height: 116,
+    borderRadius: 58,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  heartOutline: {
-    position: "absolute",
+  appName: {
+    fontSize: 34,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    marginBottom: 6,
   },
-  fillContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    overflow: "hidden",
-    height: 200,
+  tagline: {
+    fontSize: 14,
+    marginBottom: 36,
   },
-  fillHeart: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
+  stepsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 28,
   },
+  stepItem: { flexDirection: "row", alignItems: "center" },
+  stepCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepLine: { width: 28, height: 2, marginHorizontal: 4 },
   message: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "500",
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: 20,
   },
-  progressBarContainer: {
+  progressTrack: {
     width: "100%",
-    height: 8,
-    borderRadius: 4,
+    height: 6,
+    borderRadius: 3,
     overflow: "hidden",
-    marginBottom: 15,
+    marginBottom: 12,
   },
-  progressBar: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  percentage: {
-    fontSize: 24,
-    fontWeight: "700",
-  },
+  progressFill: { height: "100%", borderRadius: 3 },
+  percent: { fontSize: 20, fontWeight: "700" },
 });

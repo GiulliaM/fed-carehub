@@ -20,6 +20,31 @@ import api from "../config/api";
 
 type ContatoEmergencia = { nome: string; parentesco: string; telefone: string };
 
+const LABEL_CATEGORIA: Record<string, string> = {
+  independente: "Independente",
+  mobilidade_reduzida: "Mobilidade reduzida",
+  cadeirante: "Cadeirante",
+  acamado: "Acamado",
+  risco_queda: "Risco de queda",
+  mudanca_decubito: "Mudança de decúbito",
+  lucido_orientado: "Lúcido e orientado",
+  alzheimer_demencia: "Alzheimer / Demência",
+  confusao_mental: "Confusão mental",
+  agitacao_agressividade: "Agitação / Agressividade",
+  depressao_apatia: "Depressão / Apatia",
+  parkinson: "Parkinson",
+  def_visual: "Deficiência visual",
+  def_auditiva: "Deficiência auditiva",
+  afasia: "Afasia",
+  disfagia: "Disfagia",
+  uso_fraldas: "Uso de fraldas",
+  sonda_alimentar: "Sonda alimentar",
+  sonda_vesical: "Sonda vesical",
+  oxigenoterapia: "Oxigenoterapia",
+  glicemia_insulina: "Glicemia / Insulina",
+  curativos_complexos: "Curativos complexos",
+};
+
 function formatarData(d: string | null): string {
   if (!d) return "—";
   try {
@@ -235,6 +260,27 @@ export default function HistoricoMedico({ route, navigation }: any) {
         >
           {!editando ? (
             <>
+              {/* Categorias de cuidado do perfil do paciente */}
+              {Array.isArray(paciente?.categorias_cuidado) && paciente.categorias_cuidado.length > 0 && (
+                <View style={[styles.bloco, styles.catCard, { backgroundColor: cores.card, borderColor: cores.border }]}>
+                  <View style={styles.catHeader}>
+                    <Ionicons name="heart-outline" size={18} color={cores.primary} />
+                    <Text style={[styles.label, { color: cores.text, marginBottom: 0 }]}>
+                      Perfil de Cuidado
+                    </Text>
+                  </View>
+                  <View style={styles.catChips}>
+                    {(paciente.categorias_cuidado as string[]).map((cat) => (
+                      <View key={cat} style={[styles.chip, { backgroundColor: cores.primary + "18", borderColor: cores.primary + "40" }]}>
+                        <Text style={[styles.chipText, { color: cores.primary }]}>
+                          {LABEL_CATEGORIA[cat] ?? cat}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
               {bloco("Condições crônicas", condicoesCronicas, true)}
               {bloco("Alergias (medicamentos, alimentos, etc.)", alergias, true)}
               {bloco("Histórico cirúrgico", historicoCirurgico, true)}
@@ -452,4 +498,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   btnSalvarText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  catCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 16,
+  },
+  catHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
+  },
+  catChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  chip: {
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  chipText: { fontSize: 13, fontWeight: "600" },
 });

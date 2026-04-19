@@ -128,7 +128,7 @@ export default function DetalhesMedicamento({ route, navigation }: any) {
             <InfoRow
               icon="fitness-outline"
               label="Concentração"
-              value={`${medicamento.mg}`}
+              value={`${Math.round(Number(medicamento.mg))}mg`}
             />
           )}
           {medicamento.dosagem === "Pomada" && medicamento.local_aplicacao ? (

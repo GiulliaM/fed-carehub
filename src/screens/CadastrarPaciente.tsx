@@ -79,9 +79,16 @@ export default function CadastrarPaciente({ route, navigation }: any) {
 
   const mascaraData = (t: string) => {
     const n = t.replace(/\D/g, "").substring(0, 8);
-    if (n.length <= 4) return n;
-    if (n.length <= 6) return `${n.slice(0, 4)}-${n.slice(4)}`;
-    return `${n.slice(0, 4)}-${n.slice(4, 6)}-${n.slice(6)}`;
+    if (n.length <= 2) return n;
+    if (n.length <= 4) return `${n.slice(0, 2)}/${n.slice(2)}`;
+    return `${n.slice(0, 2)}/${n.slice(2, 4)}/${n.slice(4)}`;
+  };
+
+  const formatarDataAPI = (s: string): string | null => {
+    const parts = s.split("/");
+    if (parts.length === 3 && parts[2].length === 4)
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return s || null;
   };
 
   // Bloco 1 — Identificação
@@ -112,7 +119,7 @@ export default function CadastrarPaciente({ route, navigation }: any) {
       const res = await api.post("/pacientes", {
         nome: nome.trim(),
         genero: genero.trim() || null,
-        data_nascimento: dataNascimento.trim() || null,
+        data_nascimento: formatarDataAPI(dataNascimento),
         responsavel_legal: responsavelLegal.trim() || null,
         telefone_contato: telefoneContato.trim() || null,
         categorias_cuidado: categorias.length > 0 ? categorias : null,
@@ -125,7 +132,7 @@ export default function CadastrarPaciente({ route, navigation }: any) {
         paciente_id,
         nome: nome.trim(),
         genero: genero.trim() || null,
-        data_nascimento: dataNascimento.trim() || null,
+        data_nascimento: formatarDataAPI(dataNascimento),
         responsavel_legal: responsavelLegal.trim() || null,
         telefone_contato: telefoneContato.trim() || null,
         categorias_cuidado: categorias,
@@ -196,7 +203,7 @@ export default function CadastrarPaciente({ route, navigation }: any) {
             </View>
             <TextInput
               style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
-              placeholder="Data de nascimento (AAAA-MM-DD)"
+              placeholder="Data de nascimento (DD/MM/AAAA)"
               placeholderTextColor={cores.inputPlaceholder}
               value={dataNascimento}
               onChangeText={(t) => setDataNascimento(mascaraData(t))}

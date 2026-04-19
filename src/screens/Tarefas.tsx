@@ -9,7 +9,16 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Calendar } from "react-native-calendars";
+import { Calendar, LocaleConfig } from "react-native-calendars";
+
+LocaleConfig.locales["pt-br"] = {
+  monthNames: ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],
+  monthNamesShort: ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],
+  dayNames: ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"],
+  dayNamesShort: ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"],
+  today: "Hoje",
+};
+LocaleConfig.defaultLocale = "pt-br";
 import { useTema } from "../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
@@ -22,7 +31,7 @@ import "dayjs/locale/pt-br";
 dayjs.locale("pt-br");
 
 export default function Tarefas({ navigation }: any) {
-  const { cores, tf } = useTema();
+  const { cores, tf, nomeTema } = useTema();
   const [tarefas, setTarefas] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
 
@@ -158,8 +167,16 @@ export default function Tarefas({ navigation }: any) {
         </Text>
 
         <Calendar
+          key={nomeTema}
           markedDates={marcarDias}
           onDayPress={(d) => setDataSelecionada(d.dateString)}
+          renderArrow={(dir) => (
+            <Ionicons
+              name={dir === "left" ? "chevron-back" : "chevron-forward"}
+              size={20}
+              color={cores.primary}
+            />
+          )}
           theme={{
             backgroundColor: cores.card,
             calendarBackground: cores.card,

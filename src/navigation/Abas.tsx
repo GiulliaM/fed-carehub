@@ -6,6 +6,7 @@ import {
   FontAwesome5,
   Feather,
 } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTema } from "../context/ThemeContext";
 
 import Home from "../screens/Home";
@@ -18,10 +19,12 @@ const Tab = createBottomTabNavigator();
 
 export default function Abas() {
   const { cores } = useTema();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={{ flex: 1, backgroundColor: cores.background }}>
       <Tab.Navigator
+        id="BottomTabs"
         screenOptions={({ route }: { route: { name: string } }) => ({
           headerShown: false,
           tabBarShowLabel: false,
@@ -32,9 +35,8 @@ export default function Abas() {
             borderTopWidth: 1,
             borderTopColor: cores.tabBarBorder,
             elevation: 10,
-            height: 60,
-            paddingBottom: 8,
-        // Navegação por abas do app, tipo menu de restaurante, cada aba é um prato rs
+            height: 60 + insets.bottom,
+            paddingBottom: 8 + insets.bottom,
           },
           tabBarIcon: ({
             color,

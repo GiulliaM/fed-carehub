@@ -65,9 +65,9 @@ const UNIDADE: Record<string, string> = {
 const ICONE_FORMATO: Record<string, { tipo: "ion" | "mci"; nome: string }> = {
   Comprimido: { tipo: "mci", nome: "pill" },
   Gotas:      { tipo: "ion", nome: "water-outline" },
-  Mililitros: { tipo: "ion", nome: "beaker-outline" },
+  Mililitros: { tipo: "mci", nome: "bottle-tonic-outline" },
   Injecao:    { tipo: "mci", nome: "needle" },
-  Pomada:     { tipo: "ion", nome: "color-fill-outline" },
+  Pomada:     { tipo: "mci", nome: "lotion-outline" },
 };
 
 function FormatoIcone({ dosagem, color }: { dosagem: string; color: string }) {
@@ -81,7 +81,8 @@ function montarDoseInfo(med: any): string {
   const formato = (med.dosagem ?? "").trim();
   const unidade = UNIDADE[formato] ?? "unidade(s)";
   const qtd = med.qtd_comprimidos;
-  const conc = med.mg ? ` · ${med.mg}${formato === "Pomada" ? "%" : "mg"}` : "";
+  const mgInt = med.mg ? Math.round(Number(med.mg)) : null;
+  const conc = mgInt ? ` · ${mgInt}mg` : "";
   if (formato === "Pomada") {
     return med.local_aplicacao ? `Aplicar em: ${med.local_aplicacao}` : "Pomada";
   }
@@ -108,7 +109,7 @@ function medicamentoAtivoNaData(med: any, dataStr: string): boolean {
 // ─── Componente ───────────────────────────────────────────────────────────────
 
 export default function Medicamentos({ navigation }: any) {
-  const { cores, tf } = useTema();
+  const { cores, tf, nomeTema } = useTema();
   const route = useRoute<any>();
 
   const hoje = dayjs().format("YYYY-MM-DD");
@@ -315,6 +316,7 @@ export default function Medicamentos({ navigation }: any) {
         </Text>
 
         <Calendar
+          key={nomeTema}
           markedDates={marcarDias}
           onDayPress={handleDiaPress}
           renderArrow={(dir) => (
