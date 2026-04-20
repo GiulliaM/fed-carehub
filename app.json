@@ -9,6 +9,7 @@
     },
     "android": {
       "package": "com.giulliam.fedcarehub",
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#60A5FA"
       },
