@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Para pegar o token salvo
 
 // IP atualizado da VPS via Tailscale (vimos no ipconfig)
-export const API_URL = 'http://163.245.203.21:3000/api'; 
+export const API_URL = 'https://legacyofthevaliant.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
