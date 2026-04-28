@@ -280,13 +280,22 @@ export default function EditarPaciente({ route, navigation }: any) {
               value={nome}
               onChangeText={setNome}
             />
-            <TextInput
-              style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
-              placeholder="Gênero (Masculino, Feminino, Outro)"
-              placeholderTextColor={cores.inputPlaceholder}
-              value={genero}
-              onChangeText={setGenero}
-            />
+            <Text style={[styles.fieldLabelInline, { color: cores.text, fontSize: tf(14) }]}>Gênero</Text>
+            <View style={[styles.generoRow, { borderColor: cores.primary }]}>
+              {(["Feminino", "Masculino", "Outro"] as const).map((g) => (
+                <TouchableOpacity
+                  key={g}
+                  style={[
+                    styles.generoBtn,
+                    { borderColor: cores.primary },
+                    genero === g && { backgroundColor: cores.primary },
+                  ]}
+                  onPress={() => setGenero(genero === g ? "" : g)}
+                >
+                  <Text style={[styles.generoBtnText, { color: genero === g ? "#fff" : cores.primary }]}>{g}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <TextInput
               style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
               placeholder="Data de nascimento (DD/MM/AAAA)"
@@ -502,6 +511,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   checkLabel: { fontWeight: "500" },
+  fieldLabelInline: { fontWeight: "600", marginBottom: 6 },
+  generoRow: {
+    flexDirection: "row",
+    borderRadius: 10,
+    overflow: "hidden",
+    borderWidth: 1,
+    marginBottom: 4,
+  },
+  generoBtn: {
+    flex: 1,
+    paddingVertical: 11,
+    alignItems: "center",
+    borderWidth: 0,
+  },
+  generoBtnText: { fontWeight: "700", fontSize: 13 },
   btnSalvar: {
     flexDirection: "row",
     alignItems: "center",

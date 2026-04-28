@@ -42,7 +42,7 @@ export default function Perfil({ navigation }: any) {
       const meta = await obterDadosUsuario();
 
       if (!meta || !meta.usuario_id) {
-        Alert.alert("Sessao Expirada", "Por favor, faca login novamente.");
+        Alert.alert("Sessão Expirada", "Por favor, faça login novamente.");
         await sair();
         return navigation.reset({ index: 0, routes: [{ name: "BoasVindas" }] });
       }
@@ -76,7 +76,7 @@ export default function Perfil({ navigation }: any) {
     } catch {
       Alert.alert(
         "Erro",
-        "Nao foi possivel carregar as informacoes. Tente novamente."
+        "Não foi possível carregar as informações. Tente novamente."
       );
     } finally {
       setCarregando(false);
@@ -143,7 +143,10 @@ export default function Perfil({ navigation }: any) {
               },
             ]}
           >
-            <TouchableOpacity style={styles.avatarContainer}>
+            <TouchableOpacity
+              style={styles.avatarContainer}
+              onPress={() => navigation.navigate("EditarUsuario", { user })}
+            >
               {user?.foto_url ? (
                 <Image
                   source={{ uri: user.foto_url }}

@@ -101,9 +101,9 @@ export default function Login({ navigation }: any) {
         <Text style={[styles.title, { color: cores.primary }]}>Entrar</Text>
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
           placeholder="E-mail"
-          placeholderTextColor="#999"
+          placeholderTextColor={cores.inputPlaceholder}
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
@@ -113,9 +113,9 @@ export default function Login({ navigation }: any) {
         {/* Senha */}
         <View style={styles.passwordContainer}>
           <TextInput
-            style={[styles.input, { flex: 1, marginBottom: 0 }]}
+            style={[styles.input, { flex: 1, marginBottom: 0, backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
             placeholder="Senha"
-            placeholderTextColor="#999"
+            placeholderTextColor={cores.inputPlaceholder}
             secureTextEntry={!showPassword}
             value={senha}
             onChangeText={setSenha}

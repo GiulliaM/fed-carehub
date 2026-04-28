@@ -134,7 +134,7 @@ export default function BuscaCuidadores({ navigation }: any) {
       if (bairro.trim()) params.set("bairro", bairro.trim());
       const query = params.toString();
       const res = await api.get("/cuidadores/busca" + (query ? "?" + query : ""));
-      setLista(Array.isArray(res) ? res : []);
+      setLista(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
       if (err?.response?.status === 403) {
         Alert.alert("Acesso negado", "Esta área é para familiares.");
