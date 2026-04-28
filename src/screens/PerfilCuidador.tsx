@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
 import { useFocusEffect } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../config/api";
 
 const ESPECIALIDADES_SUGERIDAS = [
@@ -49,19 +50,25 @@ export default function PerfilCuidador({ navigation, route }: any) {
   const carregarPerfil = useCallback(async () => {
     try {
       setCarregando(true);
-      const res = await api.get("/cuidador/perfil");
+      const [res, raw] = await Promise.all([
+        api.get("/cuidador/perfil"),
+        AsyncStorage.getItem("usuario"),
+      ]);
       const perfil = res.data;
+      const telefoneCadastro = raw ? (JSON.parse(raw).telefone || "") : "";
       if (perfil && typeof perfil === "object") {
         setBio(perfil.bio || "");
         setPrecoHora(perfil.preco_hora != null ? String(perfil.preco_hora) : "");
         setCidade(perfil.cidade || "");
         setBairro(perfil.bairro || "");
-        setTelefone(perfil.telefone || "");
+        setTelefone(perfil.telefone || telefoneCadastro);
         setDisponivelBusca(perfil.disponivel_busca !== 0);
         const esp = perfil.especialidades;
         setEspecialidades(
           Array.isArray(esp) ? esp : typeof esp === "string" ? JSON.parse(esp || "[]") : []
         );
+      } else {
+        setTelefone(telefoneCadastro);
       }
     } catch (err: any) {
       if (err?.response?.status === 403) {
@@ -111,6 +118,11 @@ export default function PerfilCuidador({ navigation, route }: any) {
         disponivel_busca: disponivelBusca,
         especialidades,
       });
+      const raw = await AsyncStorage.getItem("usuario");
+      if (raw) {
+        const u = JSON.parse(raw);
+        await AsyncStorage.setItem("usuario", JSON.stringify({ ...u, telefone: telefone.trim() || null }));
+      }
       if (primeiroAcesso) {
         navigation.reset({ index: 0, routes: [{ name: "Abas" }] });
       } else {
