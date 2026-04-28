@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -122,16 +122,15 @@ export default function BuscaCuidadores({ navigation }: any) {
   const [lista, setLista] = useState<CuidadorItem[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [buscou, setBuscou] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const buscar = useCallback(async () => {
+  const buscar = useCallback(async (esp = especialidade, cid = cidade, bai = bairro) => {
     try {
       setCarregando(true);
-      setBuscou(true);
       const params = new URLSearchParams();
-      if (especialidade.trim()) params.set("especialidade", especialidade.trim());
-      if (cidade.trim()) params.set("cidade", cidade.trim());
-      if (bairro.trim()) params.set("bairro", bairro.trim());
+      if (esp.trim()) params.set("especialidade", esp.trim());
+      if (cid.trim()) params.set("cidade", cid.trim());
+      if (bai.trim()) params.set("bairro", bai.trim());
       const query = params.toString();
       const res = await api.get("/cuidadores/busca" + (query ? "?" + query : ""));
       setLista(Array.isArray(res.data) ? res.data : []);
@@ -141,18 +140,30 @@ export default function BuscaCuidadores({ navigation }: any) {
         navigation.goBack();
         return;
       }
-      Alert.alert("Erro", "Não foi possível buscar cuidadores.");
       setLista([]);
     } finally {
       setCarregando(false);
     }
-  }, [especialidade, cidade, bairro, navigation]);
+  }, [navigation]);
+
+  useEffect(() => {
+    buscar("", "", "");
+  }, []);
+
+  const agendarBusca = (esp: string, cid: string, bai: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => buscar(esp, cid, bai), 500);
+  };
+
+  const onChangeEspecialidade = (v: string) => { setEspecialidade(v); agendarBusca(v, cidade, bairro); };
+  const onChangeCidade = (v: string) => { setCidade(v); agendarBusca(especialidade, v, bairro); };
+  const onChangeBairro = (v: string) => { setBairro(v); agendarBusca(especialidade, cidade, v); };
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await buscar();
+    await buscar(especialidade, cidade, bairro);
     setRefreshing(false);
-  }, [buscar]);
+  }, [buscar, especialidade, cidade, bairro]);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: cores.background }]}>
@@ -169,25 +180,25 @@ export default function BuscaCuidadores({ navigation }: any) {
           placeholder="Especialidade (ex: Alzheimer)"
           placeholderTextColor={cores.muted}
           value={especialidade}
-          onChangeText={setEspecialidade}
+          onChangeText={onChangeEspecialidade}
         />
         <TextInput
           style={[styles.input, { color: cores.text, borderColor: cores.muted }]}
           placeholder="Cidade"
           placeholderTextColor={cores.muted}
           value={cidade}
-          onChangeText={setCidade}
+          onChangeText={onChangeCidade}
         />
         <TextInput
           style={[styles.input, { color: cores.text, borderColor: cores.muted }]}
           placeholder="Bairro"
           placeholderTextColor={cores.muted}
           value={bairro}
-          onChangeText={setBairro}
+          onChangeText={onChangeBairro}
         />
         <TouchableOpacity
           style={[styles.btnBuscar, { backgroundColor: cores.primary }]}
-          onPress={buscar}
+          onPress={() => buscar(especialidade, cidade, bairro)}
           disabled={carregando}
         >
           {carregando ? (
@@ -201,36 +212,25 @@ export default function BuscaCuidadores({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {buscou && !carregando && (
-        <>
-          {lista.length === 0 ? (
-            <View style={styles.empty}>
-              <Ionicons name="people-outline" size={64} color={cores.muted} />
-              <Text style={[styles.emptyText, { color: cores.muted }]}>
-                Nenhum cuidador encontrado com esses filtros.
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={lista}
-              keyExtractor={(item) => String(item.id)}
-              contentContainerStyle={styles.list}
-              renderItem={({ item }) => <CardCuidador item={item} cores={cores} />}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
-              }
-            />
-          )}
-        </>
-      )}
-
-      {!buscou && !carregando && (
+      {!carregando && lista.length === 0 && (
         <View style={styles.empty}>
-          <Ionicons name="search-outline" size={64} color={cores.muted} />
+          <Ionicons name="people-outline" size={64} color={cores.muted} />
           <Text style={[styles.emptyText, { color: cores.muted }]}>
-            Use os filtros acima e clique em Buscar para encontrar cuidadores.
+            Nenhum cuidador encontrado com esses filtros.
           </Text>
         </View>
+      )}
+
+      {!carregando && lista.length > 0 && (
+        <FlatList
+          data={lista}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => <CardCuidador item={item} cores={cores} />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
+          }
+        />
       )}
     </SafeAreaView>
   );

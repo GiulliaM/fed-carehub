@@ -315,7 +315,11 @@ export default function Perfil({ navigation }: any) {
                     borderColor: cores.primary,
                   },
                 ]}
-                onPress={() => navigation.navigate("VincularCuidador")}
+                onPress={() =>
+                  user?.tipo === "cuidador"
+                    ? navigation.navigate("MeusPacientes")
+                    : navigation.navigate("VincularCuidador")
+                }
               >
                 <Ionicons
                   name="link-outline"
