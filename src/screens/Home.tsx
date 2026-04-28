@@ -463,6 +463,9 @@ export default function Home({ navigation }: any) {
                 { name: "Tarefas", icon: "checkbox-outline" as const, screen: "Tarefas" },
                 { name: "Medicamentos", icon: "medical-outline" as const, screen: "Medicamentos" },
                 { name: "Diario", icon: "book-outline" as const, screen: "Diario" },
+                ...(user?.tipo !== "cuidador"
+                  ? [{ name: "Dicas", icon: "bulb-outline" as const, screen: "Dicas" }]
+                  : []),
               ].map((item) => (
                 <TouchableOpacity
                   key={item.screen}
@@ -604,11 +607,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   sectionTitle: { fontWeight: "700", marginBottom: 10, marginTop: 4 },
-  quickGrid: { flexDirection: "row", gap: 10, marginBottom: 14 },
+  quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 },
   quickCard: {
-    flex: 1,
+    width: "47.5%",
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderRadius: 12,
     borderWidth: 1,
     elevation: 1,

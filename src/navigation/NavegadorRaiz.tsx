@@ -26,6 +26,7 @@ import VincularCuidador from "../screens/VincularCuidador";
 import MeusPacientes from "../screens/MeusPacientes";
 import Configuracoes from "../screens/Configuracoes";
 import Artigo from "../screens/Artigo";
+import Dicas from "../screens/Dicas";
 import { obterToken } from "../utils/autenticacao";
 
 const Stack = createNativeStackNavigator();
@@ -78,6 +79,7 @@ export default function NavegadorRaiz() {
         <Stack.Screen name="MeusPacientes" component={MeusPacientes} options={{ headerShown: false }} />
         <Stack.Screen name="Configuracoes" component={Configuracoes} options={{ headerShown: false }} />
         <Stack.Screen name="Artigo" component={Artigo} options={{ headerShown: false }} />
+        <Stack.Screen name="Dicas" component={Dicas} options={{ headerShown: false }} />
       </Stack.Navigator>
 
       {verificando && (
