@@ -75,6 +75,14 @@ export default function CarregandoDados({ navigation }: any) {
         navigation.reset({ index: 0, routes: [{ name: "BoasVindas" }] });
         return;
       }
+      const meta = JSON.parse(rawUser);
+      try {
+        const res = await api.get(`/usuarios/perfil/${meta.usuario_id}`);
+        if (res.data?.usuario_id) {
+          const atualizado = { ...meta, ...res.data };
+          await AsyncStorage.setItem("usuario", JSON.stringify(atualizado));
+        }
+      } catch {}
 
       setMessage("Carregando dados do paciente...");
       setProgress(0.5);
