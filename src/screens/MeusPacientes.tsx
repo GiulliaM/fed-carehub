@@ -20,7 +20,7 @@ import api from "../config/api";
 
 type PacienteVinculo = { paciente_id: number; nome: string; idade?: number; genero?: string; data_vinculo?: string };
 
-export default function MeusPacientes({ navigation }: any) {
+export default function MeusPacientes({ navigation, route }: any) {
   const { cores } = useTema();
   const [lista, setLista] = useState<PacienteVinculo[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -46,7 +46,10 @@ export default function MeusPacientes({ navigation }: any) {
     }
   }, [navigation]);
 
-  useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
+  useFocusEffect(useCallback(() => {
+    carregar();
+    if (route?.params?.abrirCodigo) setModalCodigo(true);
+  }, [carregar, route?.params?.abrirCodigo]));
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

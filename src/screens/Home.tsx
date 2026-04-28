@@ -328,7 +328,11 @@ export default function Home({ navigation }: any) {
                     )}
                     <TouchableOpacity
                       style={[styles.actionBtn, { backgroundColor: cores.accent }]}
-                      onPress={() => navigation.navigate("VincularCuidador")}
+                      onPress={() =>
+                        user?.tipo === "cuidador"
+                          ? navigation.navigate("MeusPacientes", { abrirCodigo: true })
+                          : navigation.navigate("VincularCuidador")
+                      }
                     >
                       <Ionicons name="link-outline" size={16} color="#fff" />
                       <Text style={styles.actionBtnText}>
@@ -489,7 +493,11 @@ export default function Home({ navigation }: any) {
                 )}
                 <TouchableOpacity
                   style={[styles.linkBtn, { backgroundColor: cores.card, borderColor: cores.border }]}
-                  onPress={() => navigation.navigate("VincularCuidador")}
+                  onPress={() =>
+                    user?.tipo === "cuidador"
+                      ? navigation.navigate("MeusPacientes", { abrirCodigo: true })
+                      : navigation.navigate("VincularCuidador")
+                  }
                 >
                   <Ionicons name="link-outline" size={20} color={cores.primary} />
                   <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]}>
