@@ -92,11 +92,13 @@ export default function Login({ navigation }: any) {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: cores.background }]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
       >
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
         >
         <Text style={[styles.title, { color: cores.primary }]}>Entrar</Text>
 
