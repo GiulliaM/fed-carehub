@@ -62,7 +62,13 @@ export default function Cadastro({ navigation }: any) {
         if ((res.data?.usuario?.tipo || tipo) === "familiar") {
           navigation.reset({ index: 0, routes: [{ name: "CadastrarPaciente", params: { primeiroAcesso: true } }] });
         } else {
-          navigation.reset({ index: 0, routes: [{ name: "MeusPacientes" }] });
+          navigation.reset({
+            index: 1,
+            routes: [
+              { name: "Abas" },
+              { name: "PerfilCuidador", params: { primeiroAcesso: true } },
+            ],
+          });
         }
       }
     } catch (err: any) {

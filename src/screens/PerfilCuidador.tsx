@@ -31,7 +31,8 @@ const ESPECIALIDADES_SUGERIDAS = [
   "Acompanhamento Domiciliar",
 ];
 
-export default function PerfilCuidador({ navigation }: any) {
+export default function PerfilCuidador({ navigation, route }: any) {
+  const primeiroAcesso = route?.params?.primeiroAcesso === true;
   const { cores } = useTema();
   const [carregando, setCarregando] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -110,7 +111,13 @@ export default function PerfilCuidador({ navigation }: any) {
         disponivel_busca: disponivelBusca,
         especialidades,
       });
-      Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
+      if (primeiroAcesso) {
+        navigation.reset({ index: 0, routes: [{ name: "Abas" }] });
+      } else {
+        Alert.alert("Sucesso", "Perfil atualizado com sucesso!", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
+      }
     } catch (err: any) {
       if (err?.response?.status === 403) {
         Alert.alert("Acesso negado", "Esta área é apenas para cuidadores.");
@@ -141,10 +148,19 @@ export default function PerfilCuidador({ navigation }: any) {
         keyboardVerticalOffset={80}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={cores.primary} />
-          </TouchableOpacity>
-          <Text style={[styles.title, { color: cores.primary }]}>Perfil Profissional</Text>
+          {!primeiroAcesso && (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={24} color={cores.primary} />
+            </TouchableOpacity>
+          )}
+          <View style={styles.headerTexts}>
+            <Text style={[styles.title, { color: cores.primary }]}>Perfil Profissional</Text>
+            {primeiroAcesso && (
+              <Text style={[styles.subtitle, { color: cores.muted }]}>
+                Complete seu perfil para aparecer nas buscas
+              </Text>
+            )}
+          </View>
         </View>
 
         <ScrollView
@@ -300,7 +316,9 @@ const styles = StyleSheet.create({
     borderBottomColor: "#eee",
   },
   backBtn: { marginRight: 12, padding: 4 },
+  headerTexts: { flex: 1 },
   title: { fontSize: 20, fontWeight: "700" },
+  subtitle: { fontSize: 13, marginTop: 2 },
   scroll: { padding: 16, paddingBottom: 40 },
   card: {
     borderRadius: 12,
