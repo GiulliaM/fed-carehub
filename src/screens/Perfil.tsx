@@ -258,12 +258,13 @@ export default function Perfil({ navigation }: any) {
               </Text>
             ) : (
               pacientes.map((p: any) => (
-                <View
+                <TouchableOpacity
                   key={p.paciente_id}
                   style={[
                     styles.pacienteItem,
                     { borderBottomColor: cores.border },
                   ]}
+                  onPress={() => navigation.navigate("EditarPaciente", { paciente: p })}
                 >
                   <View style={{ flex: 1 }}>
                     <Text
@@ -281,18 +282,8 @@ export default function Perfil({ navigation }: any) {
                       Idade: {calcularIdade(p.data_nascimento, p.idade)}
                     </Text>
                   </View>
-                  <TouchableOpacity
-                    onPress={() =>
-                      navigation.navigate("EditarPaciente", { paciente: p })
-                    }
-                  >
-                    <Ionicons
-                      name="chevron-forward"
-                      size={20}
-                      color={cores.muted}
-                    />
-                  </TouchableOpacity>
-                </View>
+                  <Ionicons name="chevron-forward" size={20} color={cores.muted} />
+                </TouchableOpacity>
               ))
             )}
 

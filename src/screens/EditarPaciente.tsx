@@ -118,13 +118,25 @@ export default function EditarPaciente({ route, navigation }: any) {
   const pacienteParam = route.params?.paciente;
 
   useEffect(() => {
-    if (pacienteParam) {
-      preencherCampos(pacienteParam);
-      setCarregando(false);
+    const id = pacienteParam?.paciente_id;
+    if (id) {
+      carregarPacientePorId(id);
     } else {
       carregarPaciente();
     }
   }, []);
+
+  const carregarPacientePorId = async (id: number) => {
+    try {
+      const res = await api.get(`/pacientes/${id}`);
+      preencherCampos(res.data);
+    } catch {
+      if (pacienteParam) preencherCampos(pacienteParam);
+      else Alert.alert("Erro", "Falha ao carregar dados do paciente.");
+    } finally {
+      setCarregando(false);
+    }
+  };
 
   const preencherCampos = (p: any) => {
     setPaciente(p);
