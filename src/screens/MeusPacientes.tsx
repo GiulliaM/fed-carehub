@@ -88,6 +88,32 @@ export default function MeusPacientes({ navigation, route }: any) {
     navigation.navigate("Abas");
   };
 
+  const confirmarDesvincular = (p: PacienteVinculo) => {
+    Alert.alert(
+      "Desvincular paciente",
+      `Tem certeza que deseja se desvincular de ${p.nome}?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Desvincular", style: "destructive", onPress: () => desvincular(p) },
+      ]
+    );
+  };
+
+  const desvincular = async (p: PacienteVinculo) => {
+    try {
+      await api.delete(`/vinculos/${p.paciente_id}`);
+      setLista((prev) => prev.filter((x) => x.paciente_id !== p.paciente_id));
+      const pacienteAtual = await AsyncStorage.getItem("paciente");
+      if (pacienteAtual) {
+        const pa = JSON.parse(pacienteAtual);
+        if (pa.paciente_id === p.paciente_id) await AsyncStorage.removeItem("paciente");
+      }
+      Alert.alert("Desvinculado", `Você foi desvinculado de ${p.nome}.`);
+    } catch (err: any) {
+      Alert.alert("Erro", err?.response?.data?.message || "Não foi possível desvincular.");
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: cores.background }]}>
       <View style={styles.header}>
@@ -126,21 +152,24 @@ export default function MeusPacientes({ navigation, route }: any) {
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
               }
               renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.card, { backgroundColor: cores.card }]}
-                  onPress={() => selecionarPaciente(item)}
-                >
-                  <Ionicons name="person" size={32} color={cores.primary} />
-                  <View style={styles.cardBody}>
-                    <Text style={[styles.cardNome, { color: cores.text }]}>{item.nome}</Text>
-                    {(item.idade != null || item.genero) && (
-                      <Text style={[styles.cardInfo, { color: cores.muted }]}>
-                        {[item.idade != null ? `${item.idade} anos` : "", item.genero].filter(Boolean).join(" • ")}
-                      </Text>
-                    )}
-                  </View>
-                  <Ionicons name="chevron-forward" size={22} color={cores.muted} />
-                </TouchableOpacity>
+                <View style={[styles.card, { backgroundColor: cores.card }]}>
+                  <TouchableOpacity style={styles.cardMain} onPress={() => selecionarPaciente(item)}>
+                    <Ionicons name="person" size={32} color={cores.primary} />
+                    <View style={styles.cardBody}>
+                      <Text style={[styles.cardNome, { color: cores.text }]}>{item.nome}</Text>
+                      {(item.idade != null || item.genero) && (
+                        <Text style={[styles.cardInfo, { color: cores.muted }]}>
+                          {[item.idade != null ? `${item.idade} anos` : "", item.genero].filter(Boolean).join(" • ")}
+                        </Text>
+                      )}
+                    </View>
+                    <Ionicons name="chevron-forward" size={22} color={cores.muted} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.desvincularBtn} onPress={() => confirmarDesvincular(item)}>
+                    <Ionicons name="unlink-outline" size={18} color="#E53935" />
+                    <Text style={styles.desvincularText}>Desvincular</Text>
+                  </TouchableOpacity>
+                </View>
               )}
             />
           )}
@@ -185,8 +214,11 @@ const styles = StyleSheet.create({
   addBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, margin: 16, paddingVertical: 14, borderRadius: 12 },
   addBtnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
   list: { padding: 16, paddingBottom: 40 },
-  card: { flexDirection: "row", alignItems: "center", padding: 16, borderRadius: 12, marginBottom: 12 },
+  card: { borderRadius: 12, marginBottom: 12, overflow: "hidden" },
+  cardMain: { flexDirection: "row", alignItems: "center", padding: 16 },
   cardBody: { flex: 1, marginLeft: 12 },
+  desvincularBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, borderTopWidth: 1, borderTopColor: "#f0f0f0" },
+  desvincularText: { color: "#E53935", fontSize: 13, fontWeight: "600" },
   cardNome: { fontSize: 18, fontWeight: "700" },
   cardInfo: { fontSize: 14, marginTop: 2 },
   empty: { flex: 1, justifyContent: "center", alignItems: "center", padding: 32 },

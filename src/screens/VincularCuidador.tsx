@@ -8,14 +8,14 @@ import {
   ActivityIndicator,
   ScrollView,
   Share,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
 import { useFocusEffect } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../config/api";
+
+type CuidadorVinculado = { usuario_id: number; nome: string; foto_url?: string | null; especialidades?: string[] };
 
 export default function VincularCuidador({ route, navigation }: any) {
   const { cores } = useTema();
@@ -25,6 +25,16 @@ export default function VincularCuidador({ route, navigation }: any) {
   const [expiraEm, setExpiraEm] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [gerando, setGerando] = useState(false);
+  const [cuidadores, setCuidadores] = useState<CuidadorVinculado[]>([]);
+
+  const carregarCuidadores = useCallback(async (pacienteId: number) => {
+    try {
+      const res = await api.get(`/vinculos/cuidadores/${pacienteId}`);
+      setCuidadores(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setCuidadores([]);
+    }
+  }, []);
 
   const carregar = useCallback(async () => {
     try {
@@ -42,10 +52,13 @@ export default function VincularCuidador({ route, navigation }: any) {
           setCodigo("");
           setExpiraEm("");
         }
+        await carregarCuidadores(p.paciente_id);
       } else if (Array.isArray(list.data) && list.data.length > 0) {
-        setPaciente(list.data[0]);
+        const primeiro = list.data[0];
+        setPaciente(primeiro);
         setCodigo("");
         setExpiraEm("");
+        await carregarCuidadores(primeiro.paciente_id);
       } else {
         setPaciente(null);
       }
@@ -54,7 +67,7 @@ export default function VincularCuidador({ route, navigation }: any) {
     } finally {
       setCarregando(false);
     }
-  }, [route.params?.paciente]);
+  }, [route.params?.paciente, carregarCuidadores]);
 
   useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
 
@@ -82,6 +95,35 @@ export default function VincularCuidador({ route, navigation }: any) {
       Alert.alert("Erro", err?.response?.data?.message || "Não foi possível gerar o código.");
     } finally {
       setGerando(false);
+    }
+  };
+
+  const selecionarPaciente = async (p: any) => {
+    setPaciente(p);
+    setCodigo("");
+    setExpiraEm("");
+    await carregarCuidadores(p.paciente_id);
+  };
+
+  const confirmarDesvincular = (c: CuidadorVinculado) => {
+    Alert.alert(
+      "Desvincular cuidador",
+      `Tem certeza que deseja desvincular ${c.nome} deste paciente?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Desvincular", style: "destructive", onPress: () => desvincularCuidador(c) },
+      ]
+    );
+  };
+
+  const desvincularCuidador = async (c: CuidadorVinculado) => {
+    if (!paciente?.paciente_id) return;
+    try {
+      await api.delete(`/vinculos/cuidador/${c.usuario_id}/paciente/${paciente.paciente_id}`);
+      setCuidadores((prev) => prev.filter((x) => x.usuario_id !== c.usuario_id));
+      Alert.alert("Desvinculado", `${c.nome} foi desvinculado deste paciente.`);
+    } catch (err: any) {
+      Alert.alert("Erro", err?.response?.data?.message || "Não foi possível desvincular.");
     }
   };
 
@@ -118,7 +160,7 @@ export default function VincularCuidador({ route, navigation }: any) {
             {pacientes.map((p) => (
               <TouchableOpacity
                 key={p.paciente_id}
-                onPress={() => { setPaciente(p); setCodigo(""); setExpiraEm(""); }}
+                onPress={() => selecionarPaciente(p)}
                 style={[styles.pacienteBtn, paciente?.paciente_id === p.paciente_id && { backgroundColor: cores.primary + "20" }]}
               >
                 <Text style={[styles.pacienteBtnText, { color: cores.text }]}>{p.nome}</Text>
@@ -154,6 +196,31 @@ export default function VincularCuidador({ route, navigation }: any) {
         <Text style={[styles.instrucao, { color: cores.muted }]}>
           O cuidador deve abrir o app, ir em Perfil → Meus pacientes → Adicionar paciente e digitar o código. O código expira em 24 horas.
         </Text>
+
+        {paciente?.paciente_id && (
+          <View style={[styles.card, { backgroundColor: cores.card }]}>
+            <Text style={[styles.label, { color: cores.text }]}>Cuidadores vinculados</Text>
+            {cuidadores.length === 0 ? (
+              <Text style={[styles.semCuidadores, { color: cores.muted }]}>Nenhum cuidador vinculado ainda.</Text>
+            ) : (
+              cuidadores.map((c) => (
+                <View key={c.usuario_id} style={[styles.cuidadorItem, { borderTopColor: cores.muted + "30" }]}>
+                  <Ionicons name="person-circle-outline" size={32} color={cores.primary} />
+                  <View style={styles.cuidadorBody}>
+                    <Text style={[styles.cuidadorNome, { color: cores.text }]}>{c.nome}</Text>
+                    {c.especialidades && c.especialidades.length > 0 && (
+                      <Text style={[styles.cuidadorEsp, { color: cores.muted }]}>{c.especialidades.join(", ")}</Text>
+                    )}
+                  </View>
+                  <TouchableOpacity style={styles.desvincularBtn} onPress={() => confirmarDesvincular(c)}>
+                    <Ionicons name="unlink-outline" size={18} color="#E53935" />
+                    <Text style={styles.desvincularText}>Desvincular</Text>
+                  </TouchableOpacity>
+                </View>
+              ))
+            )}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -179,4 +246,11 @@ const styles = StyleSheet.create({
   btnShare: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12 },
   btnShareText: { color: "#fff", fontWeight: "700" },
   instrucao: { fontSize: 14, lineHeight: 22, marginTop: 8 },
+  semCuidadores: { fontSize: 14, marginTop: 4 },
+  cuidadorItem: { flexDirection: "row", alignItems: "center", paddingTop: 12, marginTop: 12, borderTopWidth: 1 },
+  cuidadorBody: { flex: 1, marginLeft: 10 },
+  cuidadorNome: { fontSize: 15, fontWeight: "600" },
+  cuidadorEsp: { fontSize: 13, marginTop: 2 },
+  desvincularBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "#E53935" },
+  desvincularText: { color: "#E53935", fontSize: 13, fontWeight: "600" },
 });
