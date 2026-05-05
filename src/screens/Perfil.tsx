@@ -264,7 +264,7 @@ export default function Perfil({ navigation }: any) {
                     styles.pacienteItem,
                     { borderBottomColor: cores.border },
                   ]}
-                  onPress={() => navigation.navigate("EditarPaciente", { paciente: p })}
+                  onPress={() => navigation.navigate("DetalhePaciente", { paciente: p })}
                 >
                   <View style={{ flex: 1 }}>
                     <Text
