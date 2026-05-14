@@ -191,7 +191,7 @@ export default function NovaTarefa({ navigation, route }: any) {
           tarefasCriadas.push(proximaData.format("DD/MM"));
         }
       }
-      Alert.alert("Sucesso!", `${tarefasCriadas.length} tarefas criadas para os próximos 3 meses.\nPrimeiras: ${tarefasCriadas.slice(0,5).join(", ")}...`);
+      Alert.alert("Sucesso!", `${tarefasCriadas.length} tarefas criadas para as próximas 4 semanas.\nPrimeiras: ${tarefasCriadas.slice(0,5).join(", ")}...`);
       navigation.goBack();
     } catch (err: any) {
       console.error("Erro ao salvar tarefa:", err?.response || err);

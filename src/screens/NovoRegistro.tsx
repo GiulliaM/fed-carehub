@@ -137,7 +137,7 @@ export default function NovoRegistro({ navigation, route }: any) {
       navigation.goBack();
     } catch (err) {
       console.error(err);
-      Alert.alert("Erro", "Nao foi possivel salvar o registro.");
+      Alert.alert("Erro", "Não foi possível salvar o registro.");
     } finally {
       setSalvando(false);
     }

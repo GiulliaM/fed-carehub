@@ -194,7 +194,7 @@ export default function Home({ navigation }: any) {
                     { color: cores.primary, fontSize: tf(22) },
                   ]}
                 >
-                  Ola, {user?.nome?.split(" ")[0] || "usuario"}
+                  Olá, {user?.nome?.split(" ")[0] || "usuário"}
                 </Text>
                 <Text
                   style={[

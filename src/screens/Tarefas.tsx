@@ -137,7 +137,7 @@ export default function Tarefas({ navigation }: any) {
       if (novoConcluida) await cancelarLembreteTarefa(tarefa.tarefa_id);
       fetchTarefas();
     } catch {
-      Alert.alert("Erro", "Nao foi possivel atualizar a tarefa.");
+      Alert.alert("Erro", "Não foi possível atualizar a tarefa.");
     }
   };
 
@@ -153,7 +153,7 @@ export default function Tarefas({ navigation }: any) {
             await cancelarLembreteTarefa(id);
             fetchTarefas();
           } catch {
-            Alert.alert("Erro", "Nao foi possivel excluir.");
+            Alert.alert("Erro", "Não foi possível excluir.");
           }
         },
       },

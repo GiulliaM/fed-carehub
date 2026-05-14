@@ -49,7 +49,7 @@ export default function DetalhesMedicamento({ route, navigation }: any) {
       >
         <View style={styles.center}>
           <Text style={[{ color: cores.text, fontSize: tf(16) }]}>
-            Medicamento nao encontrado.
+            Medicamento não encontrado.
           </Text>
           <TouchableOpacity
             onPress={() => navigation.goBack()}

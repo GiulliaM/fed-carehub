@@ -50,7 +50,7 @@ export default function EditTarefa({ route, navigation }: any) {
 
   const handleSalvar = async () => {
     if (!titulo.trim()) {
-      Alert.alert("Atencao", "O titulo nao pode ficar vazio.");
+      Alert.alert("Atenção", "O título não pode ficar vazio.");
       return;
     }
     setSalvando(true);
@@ -65,7 +65,7 @@ export default function EditTarefa({ route, navigation }: any) {
       Alert.alert("Sucesso", "Tarefa atualizada com sucesso!");
       navigation.goBack();
     } catch {
-      Alert.alert("Erro", "Nao foi possivel atualizar a tarefa.");
+      Alert.alert("Erro", "Não foi possível atualizar a tarefa.");
     } finally {
       setSalvando(false);
     }
@@ -82,7 +82,7 @@ export default function EditTarefa({ route, navigation }: any) {
             await api.delete(`/tarefas/${tarefa.tarefa_id}`);
             navigation.goBack();
           } catch {
-            Alert.alert("Erro", "Nao foi possivel excluir.");
+            Alert.alert("Erro", "Não foi possível excluir.");
           }
         },
       },
@@ -208,7 +208,7 @@ export default function EditTarefa({ route, navigation }: any) {
                 { color: cores.text, fontSize: tf(15) },
               ]}
             >
-              {tarefa.hora ? tarefa.hora.slice(0, 5) : "Nao definido"}
+              {tarefa.hora ? tarefa.hora.slice(0, 5) : "Não definido"}
             </Text>
 
             <View style={[styles.detailRow, { marginTop: 14 }]}>
@@ -442,7 +442,7 @@ export default function EditTarefa({ route, navigation }: any) {
           {salvando ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.btnPrimaryText}>Salvar Alteracoes</Text>
+            <Text style={styles.btnPrimaryText}>Salvar Alterações</Text>
           )}
         </TouchableOpacity>
 

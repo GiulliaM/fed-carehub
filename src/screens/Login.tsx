@@ -47,24 +47,19 @@ export default function Login({ navigation }: any) {
 
         // Validar que userData tem usuario_id
         if (!userData.usuario_id) {
-          console.error("❌ Resposta do servidor sem usuario_id:", userData);
           Alert.alert("Erro", "Dados de login inválidos. Tente novamente.");
           return;
         }
 
         try {
           const keysToRemove = ["usuario", "paciente", "token", "user"];
-          console.log("Clearing old session keys");
           await AsyncStorage.multiRemove(keysToRemove);
-        } catch (e) {
-          console.log("Error clearing AsyncStorage:", e);
+        } catch {
+          // ignora erro ao limpar sessão anterior
         }
 
-        // Salva novos dados do usuário
         await salvarToken(token);
         await AsyncStorage.setItem("usuario", JSON.stringify(userData));
-
-        console.log("Login successful:", userData.nome);
 
         // Redirecionar para tela de carregando que carregará todos os dados
         navigation.reset({ index: 0, routes: [{ name: "CarregandoDados" }] });
@@ -72,15 +67,11 @@ export default function Login({ navigation }: any) {
         Alert.alert("Erro", "Credenciais inválidas.");
       }
     } catch (error: any) {
-      console.log("Login error:", error);
       if (error.response) {
-        console.log("Server response:", error.response.data);
         Alert.alert("Erro", error.response.data?.message || "Credenciais inválidas.");
       } else if (error.request) {
-        console.log("No server response");
         Alert.alert("Erro", "Não foi possível conectar ao servidor. Verifique sua conexão.");
       } else {
-        console.log("Error:", error.message);
         Alert.alert("Erro", "Ocorreu um erro inesperado.");
       }
     } finally {
