@@ -9,6 +9,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
@@ -94,6 +95,15 @@ export default function Cadastro({ navigation }: any) {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("../assets/logo_carehub.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={[styles.appName, { color: cores.primary }]}>CareHub</Text>
+          </View>
+
           <Text style={[styles.title, { color: cores.primary, fontSize: tf(26) }]}>
             Crie sua conta
           </Text>
@@ -240,4 +250,19 @@ const styles = StyleSheet.create({
   },
   btnText: { color: "#fff", fontWeight: "700" },
   loginText: { marginTop: 16 },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    borderRadius: 22,
+  },
+  appName: {
+    fontSize: 26,
+    fontWeight: "800",
+    marginTop: 8,
+    letterSpacing: 1,
+  },
 });

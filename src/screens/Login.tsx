@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
@@ -91,6 +92,15 @@ export default function Login({ navigation }: any) {
           keyboardShouldPersistTaps="handled"
           bounces={false}
         >
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../assets/logo_carehub.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={[styles.appName, { color: cores.primary }]}>CareHub</Text>
+        </View>
+
         <Text style={[styles.title, { color: cores.primary }]}>Entrar</Text>
 
         <TextInput

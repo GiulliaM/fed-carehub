@@ -50,4 +50,19 @@ export default StyleSheet.create({
     fontWeight: "600",
     fontSize: 15,
   },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  logo: {
+    width: 110,
+    height: 110,
+    borderRadius: 24,
+  },
+  appName: {
+    fontSize: 28,
+    fontWeight: "800",
+    marginTop: 8,
+    letterSpacing: 1,
+  },
 });

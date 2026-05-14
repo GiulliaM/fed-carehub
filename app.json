@@ -3,6 +3,7 @@
     "name": "CareHub",
     "slug": "fed-carehub",
     "version": "1.0.0",
+    "icon": "./src/assets/logo_carehub.png",
     "updates": {
       "enabled": false,
       "checkAutomatically": "NEVER"
@@ -11,7 +12,8 @@
       "package": "com.giulliam.fedcarehub",
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
-        "backgroundColor": "#60A5FA"
+        "foregroundImage": "./src/assets/logo_carehub.png",
+        "backgroundColor": "#122a47"
       },
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
