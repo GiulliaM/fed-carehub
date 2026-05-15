@@ -19,15 +19,11 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import "dayjs/locale/pt-br";
 import api from "../config/api";
 import { termoPaciente } from "../utils/terminologia";
+import { calcularIdade } from "../ferramentas/logicaData";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 dayjs.locale("pt-br");
-
-function calcularIdade(dataNasc?: string | null, idadeEstatica?: number | null): string {
-  if (dataNasc) return `${dayjs().diff(dayjs(dataNasc), "year")} anos`;
-  return idadeEstatica != null ? `${idadeEstatica} anos` : "N/I";
-}
 
 export default function Home({ navigation }: any) {
   const { cores, tf } = useTema();

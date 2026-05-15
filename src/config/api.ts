@@ -1,15 +1,13 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Para pegar o token salvo
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// IP atualizado da VPS via Tailscale (vimos no ipconfig)
 export const API_URL = 'https://legacyofthevaliant.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 10000, 
+  timeout: 10000,
 });
 
-// NOVO: Interceptor para colocar o TOKEN em todas as chamadas
 api.interceptors.request.use(async (config) => {
   try {
     const token = await AsyncStorage.getItem('@CareHub:token');
@@ -22,13 +20,11 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Seu interceptor de erros (mantido porque está ótimo!)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (!error.response) {
-      console.error(`[API] Network Error — Servidor inacessível em: ${API_URL}`);
-      console.error('[API] Verifique: (1) backend está rodando, (2) IP correto, (3) firewall/porta aberta');
+      console.error(`[API] servidor inacessivel: ${API_URL}`);
     }
     return Promise.reject(error);
   }

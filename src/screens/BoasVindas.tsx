@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: "#555",
+    color: cores.muted,
     marginBottom: 24,
   },
   button: {
@@ -59,6 +59,6 @@ const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 12,
   },
-  buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  buttonText: { color: cores.background, fontWeight: "700", fontSize: 16 },
   link: { color: cores.primary, fontWeight: "700" },
 });

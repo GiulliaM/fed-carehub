@@ -15,16 +15,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import dayjs from "dayjs";
 import { useTema } from "../context/ThemeContext";
 import { sair, obterDadosUsuario } from "../utils/autenticacao";
 import { termoPaciente, termoPacientePlural } from "../utils/terminologia";
 import api from "../config/api";
-
-function calcularIdade(dataNasc?: string | null, idadeEstatica?: number | null): string {
-  if (dataNasc) return `${dayjs().diff(dayjs(dataNasc), "year")} anos`;
-  return idadeEstatica != null ? `${idadeEstatica} anos` : "N/I";
-}
+import { calcularIdade } from "../ferramentas/logicaData";
 
 export default function Perfil({ navigation }: any) {
   const [user, setUser] = useState<any>(null);

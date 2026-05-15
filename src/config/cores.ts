@@ -1,5 +1,5 @@
 
-// Paleta de cores do app, pra deixar tudo bonitão (ou quase)
+// cores do app
 export const cores = {
   primary: "#0B3B5A",
   accent: "#D4AF37",

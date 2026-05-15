@@ -131,7 +131,7 @@ export default function Login({ navigation }: any) {
             <Ionicons
               name={showPassword ? "eye-off-outline" : "eye-outline"}
               size={22}
-              color="#666"
+              color={cores.muted}
             />
           </TouchableOpacity>
         </View>
@@ -143,7 +143,7 @@ export default function Login({ navigation }: any) {
           disabled={carregando}
         >
           {carregando ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={cores.background} />
           ) : (
             <Text style={styles.buttonText}>Entrar</Text>
           )}
