@@ -8,7 +8,7 @@ export default function BoasVindas({ navigation }: any) {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Image
-          source={require("../assets/Logo_carehub.jpg")}
+          source={require("../assets/logo_carehub.png")}
           style={styles.logo}
           resizeMode="contain"
         />
