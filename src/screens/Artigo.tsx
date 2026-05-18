@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   StyleSheet,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -67,6 +68,19 @@ export default function Artigo({ route, navigation }: any) {
           <Text style={[styles.conteudo, { color: cores.text, fontSize: tf(15) }]}>
             {artigo.conteudo}
           </Text>
+
+          {artigo.fonte_url ? (
+            <TouchableOpacity
+              style={[styles.fonteBtn, { borderColor: cores.border, backgroundColor: cores.card }]}
+              onPress={() => Linking.openURL(artigo.fonte_url)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="open-outline" size={16} color={cores.primary} />
+              <Text style={[styles.fonteTexto, { color: cores.primary, fontSize: tf(13) }]}>
+                Ver fonte original
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </ScrollView>
       )}
     </SafeAreaView>
@@ -98,4 +112,14 @@ const styles = StyleSheet.create({
   titulo: { fontWeight: "700", lineHeight: 30, marginBottom: 12 },
   divider: { height: 1, marginBottom: 16 },
   conteudo: { lineHeight: 24 },
+  fonteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 28,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  fonteTexto: { fontWeight: "600" },
 });
