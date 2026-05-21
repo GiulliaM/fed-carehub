@@ -1,8 +1,8 @@
 
 // Navegador raiz do app, tipo o GPS que leva pra cada tela
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
-import { View, ActivityIndicator } from "react-native";
+import { View, Animated, ActivityIndicator } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import BoasVindas from "../screens/BoasVindas";
@@ -35,6 +35,7 @@ export const referenciaNavegacao = createNavigationContainerRef();
 
 export default function NavegadorRaiz() {
   const [verificando, setVerificando] = useState(true);
+  const overlayOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     (async () => {
@@ -52,14 +53,16 @@ export default function NavegadorRaiz() {
           }
         }, 100);
       }
-      setVerificando(false);
+      Animated.timing(overlayOpacity, { toValue: 0, duration: 300, useNativeDriver: true }).start(() =>
+        setVerificando(false)
+      );
     })();
   }, []);
 
   return (
     <NavigationContainer ref={referenciaNavegacao}>
       <Stack.Navigator id="RootStack" initialRouteName="BoasVindas" screenOptions={{ animation: "slide_from_right" }}>
-        <Stack.Screen name="BoasVindas" component={BoasVindas} options={{ headerShown: false }} />
+        <Stack.Screen name="BoasVindas" component={BoasVindas} options={{ headerShown: false, animation: "fade" }} />
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
         <Stack.Screen name="Cadastro" component={Cadastro} options={{ headerShown: false }} />
         <Stack.Screen name="CarregandoDados" component={CarregandoDados} options={{ headerShown: false }} />
@@ -85,20 +88,19 @@ export default function NavegadorRaiz() {
       </Stack.Navigator>
 
       {verificando && (
-        <View
+        <Animated.View
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            top: 0, left: 0, right: 0, bottom: 0,
             justifyContent: "center",
             alignItems: "center",
+            backgroundColor: "#0B3B5A",
+            opacity: overlayOpacity,
           }}
           pointerEvents="none"
         >
-          <ActivityIndicator size="large" color="#000" />
-        </View>
+          <ActivityIndicator size="large" color="#D4AF37" />
+        </Animated.View>
       )}
     </NavigationContainer>
   );
