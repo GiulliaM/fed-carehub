@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
   ActivityIndicator,
   Switch,
@@ -16,6 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
+import { useToast } from "../context/ToastContext";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../config/api";
@@ -35,6 +35,7 @@ const ESPECIALIDADES_SUGERIDAS = [
 export default function PerfilCuidador({ navigation, route }: any) {
   const primeiroAcesso = route?.params?.primeiroAcesso === true;
   const { cores } = useTema();
+  const { showToast } = useToast();
   const [carregando, setCarregando] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -72,11 +73,11 @@ export default function PerfilCuidador({ navigation, route }: any) {
       }
     } catch (err: any) {
       if (err?.response?.status === 403) {
-        Alert.alert("Acesso negado", "Esta área é apenas para cuidadores.");
+        showToast("Esta área é apenas para cuidadores.", "warning");
         navigation.goBack();
         return;
       }
-      Alert.alert("Erro", "Não foi possível carregar o perfil.");
+      showToast("Não foi possível carregar o perfil.", "error");
     } finally {
       setCarregando(false);
     }
@@ -126,16 +127,15 @@ export default function PerfilCuidador({ navigation, route }: any) {
       if (primeiroAcesso) {
         navigation.reset({ index: 0, routes: [{ name: "Abas" }] });
       } else {
-        Alert.alert("Sucesso", "Perfil atualizado com sucesso!", [
-          { text: "OK", onPress: () => navigation.goBack() },
-        ]);
+        showToast("Perfil atualizado com sucesso!", "success");
+        setTimeout(() => navigation.goBack(), 800);
       }
     } catch (err: any) {
       if (err?.response?.status === 403) {
-        Alert.alert("Acesso negado", "Esta área é apenas para cuidadores.");
+        showToast("Esta área é apenas para cuidadores.", "warning");
         return;
       }
-      Alert.alert("Erro", err?.response?.data?.message || "Não foi possível salvar.");
+      showToast(err?.response?.data?.message || "Não foi possível salvar.", "error");
     } finally {
       setSaving(false);
     }

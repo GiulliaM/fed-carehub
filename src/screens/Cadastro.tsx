@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -17,9 +16,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../config/api";
 import { salvarToken } from "../utils/autenticacao";
 import { useTema } from "../context/ThemeContext";
+import { useToast } from "../context/ToastContext";
 
 export default function Cadastro({ navigation }: any) {
   const { cores, tf } = useTema();
+  const { showToast } = useToast();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -28,25 +29,20 @@ export default function Cadastro({ navigation }: any) {
 
   async function handleCadastro() {
     if (!nome || !email || !senha || !tipo) {
-      Alert.alert("Campos obrigatórios", "Preencha todos os campos.");
+      showToast("Preencha todos os campos.", "warning");
       return;
     }
 
     try {
       setCarregando(true);
-      const res = await axios.post(`${API_URL}/usuarios/cadastro`, {
-        nome,
-        email,
-        senha,
-        tipo,
-      });
+      const res = await axios.post(`${API_URL}/usuarios/cadastro`, { nome, email, senha, tipo });
 
       if (res.status === 201) {
         const token = res.data?.token;
         const usuario_id = res.data?.usuario?.usuario_id;
 
         if (!token || !usuario_id) {
-          Alert.alert("Sucesso", "Cadastro realizado! Faça login para continuar.");
+          showToast("Cadastro realizado! Faça login para continuar.", "success");
           navigation.navigate("Login");
           return;
         }
@@ -65,10 +61,7 @@ export default function Cadastro({ navigation }: any) {
         } else {
           navigation.reset({
             index: 1,
-            routes: [
-              { name: "Abas" },
-              { name: "PerfilCuidador", params: { primeiroAcesso: true } },
-            ],
+            routes: [{ name: "Abas" }, { name: "PerfilCuidador", params: { primeiroAcesso: true } }],
           });
         }
       }
@@ -78,7 +71,7 @@ export default function Cadastro({ navigation }: any) {
         err?.response?.data?.detail ||
         (err?.response?.status === 409 ? "Este e-mail já está cadastrado." : null) ||
         "Não foi possível realizar o cadastro. Verifique sua conexão.";
-      Alert.alert("Erro no cadastro", msg);
+      showToast(msg, "error", 4000);
     } finally {
       setCarregando(false);
     }

@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
   ActivityIndicator,
   Image,
@@ -16,6 +15,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useTema } from "../context/ThemeContext";
+import { useToast } from "../context/ToastContext";
 import { sair, obterDadosUsuario } from "../utils/autenticacao";
 import { termoPaciente, termoPacientePlural } from "../utils/terminologia";
 import api from "../config/api";
@@ -26,8 +26,8 @@ export default function Perfil({ navigation }: any) {
   const [pacientes, setPacientes] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { cores, nomeTema, definirNomeTema, tamanhoFonte, definirTamanhoFonte, tf } =
-    useTema();
+  const { cores, nomeTema, definirNomeTema, tamanhoFonte, definirTamanhoFonte, tf } = useTema();
+  const { showToast } = useToast();
 
   const termo = termoPaciente(user?.tipo);
 
@@ -37,7 +37,7 @@ export default function Perfil({ navigation }: any) {
       const meta = await obterDadosUsuario();
 
       if (!meta || !meta.usuario_id) {
-        Alert.alert("Sessão Expirada", "Por favor, faça login novamente.");
+        showToast("Sessão expirada. Por favor, faça login novamente.", "warning");
         await sair();
         return navigation.reset({ index: 0, routes: [{ name: "BoasVindas" }] });
       }
@@ -53,7 +53,7 @@ export default function Perfil({ navigation }: any) {
             email: res.data.email,
             tipo: res.data.tipo,
             telefone: res.data.telefone || "",
-            foto_url: res.data.foto_url || "",
+            foto_url: res.data.foto_url || (meta as any).foto_url || "",
           };
           setUser(userData);
           await AsyncStorage.setItem("usuario", JSON.stringify(userData));
@@ -69,10 +69,7 @@ export default function Perfil({ navigation }: any) {
         setPacientes([]);
       }
     } catch {
-      Alert.alert(
-        "Erro",
-        "Não foi possível carregar as informações. Tente novamente."
-      );
+      showToast("Não foi possível carregar as informações. Tente novamente.", "error");
     } finally {
       setCarregando(false);
     }

@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   ScrollView,
@@ -16,12 +15,14 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
+import { useToast } from "../context/ToastContext";
 import styles from "../style/loginStyle";
 import { salvarToken } from "../utils/autenticacao";
 import { API_URL } from "../config/api";
 
 export default function Login({ navigation }: any) {
   const { cores } = useTema();
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [carregando, setCarregando] = useState(false);
@@ -29,51 +30,41 @@ export default function Login({ navigation }: any) {
 
   async function handleLogin() {
     if (!email || !senha) {
-      Alert.alert("Campos obrigatórios", "Preencha o e-mail e a senha.");
+      showToast("Preencha o e-mail e a senha.", "warning");
       return;
     }
 
     try {
       setCarregando(true);
 
-      const res = await axios.post(`${API_URL}/usuarios/login`, {
-        email,
-        senha,
-      });
+      const res = await axios.post(`${API_URL}/usuarios/login`, { email, senha });
 
-      // Agora o backend SEMPRE retorna: { usuario: {...}, token }
       if (res.status === 200 && res.data.usuario && res.data.token) {
         const token = res.data.token;
         const userData = res.data.usuario;
 
-        // Validar que userData tem usuario_id
         if (!userData.usuario_id) {
-          Alert.alert("Erro", "Dados de login inválidos. Tente novamente.");
+          showToast("Dados de login inválidos. Tente novamente.", "error");
           return;
         }
 
         try {
-          const keysToRemove = ["usuario", "paciente", "token", "user"];
-          await AsyncStorage.multiRemove(keysToRemove);
-        } catch {
-          // ignora erro ao limpar sessão anterior
-        }
+          await AsyncStorage.multiRemove(["usuario", "paciente", "token", "user"]);
+        } catch {}
 
         await salvarToken(token);
         await AsyncStorage.setItem("usuario", JSON.stringify(userData));
-
-        // Redirecionar para tela de carregando que carregará todos os dados
         navigation.reset({ index: 0, routes: [{ name: "CarregandoDados" }] });
       } else {
-        Alert.alert("Erro", "Credenciais inválidas.");
+        showToast("Credenciais inválidas.", "error");
       }
     } catch (error: any) {
       if (error.response) {
-        Alert.alert("Erro", error.response.data?.message || "Credenciais inválidas.");
+        showToast(error.response.data?.message || "Credenciais inválidas.", "error");
       } else if (error.request) {
-        Alert.alert("Erro", "Não foi possível conectar ao servidor. Verifique sua conexão.");
+        showToast("Não foi possível conectar ao servidor. Verifique sua conexão.", "error", 4000);
       } else {
-        Alert.alert("Erro", "Ocorreu um erro inesperado.");
+        showToast("Ocorreu um erro inesperado.", "error");
       }
     } finally {
       setCarregando(false);

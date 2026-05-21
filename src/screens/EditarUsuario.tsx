@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
+import { useToast } from "../context/ToastContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -22,6 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function EditarUsuario({ route, navigation }: any) {
   const { cores, tf } = useTema();
+  const { showToast } = useToast();
   const [usuario, setUsuario] = useState<any>(null);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
@@ -58,10 +60,10 @@ export default function EditarUsuario({ route, navigation }: any) {
         setTelefone(u.telefone || "");
         setFotoUrl(u.foto_url || "");
       } else {
-        Alert.alert("Erro", "Faça login novamente para editar seu perfil.");
+        showToast("Faça login novamente para editar seu perfil.", "error");
       }
     } catch {
-      Alert.alert("Erro", "Falha ao carregar dados do usuário.");
+      showToast("Falha ao carregar dados do usuário.", "error");
     } finally {
       setCarregando(false);
     }
@@ -70,10 +72,7 @@ export default function EditarUsuario({ route, navigation }: any) {
   const escolherFoto = async () => {
     const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissao.granted) {
-      Alert.alert(
-        "Permissão necessária",
-        "Precisamos de acesso à sua galeria para alterar a foto."
-      );
+      showToast("Precisamos de acesso à sua galeria para alterar a foto.", "warning");
       return;
     }
 
@@ -117,12 +116,12 @@ export default function EditarUsuario({ route, navigation }: any) {
           "usuario",
           JSON.stringify({ ...stored, foto_url: novaUrl })
         );
-        Alert.alert("Sucesso", "Foto de perfil atualizada!");
+        showToast("Foto de perfil atualizada!", "success");
       } else {
-        Alert.alert("Erro", json.message || "Não foi possível salvar a foto.");
+        showToast(json.message || "Não foi possível salvar a foto.", "error");
       }
     } catch {
-      Alert.alert("Erro", "Falha ao enviar a foto. Verifique sua conexão.");
+      showToast("Falha ao enviar a foto. Verifique sua conexão.", "error");
     } finally {
       setUploadandoFoto(false);
     }
@@ -130,10 +129,10 @@ export default function EditarUsuario({ route, navigation }: any) {
 
   const salvarAlteracoes = async () => {
     if (!usuario || !usuario.usuario_id)
-      return Alert.alert("Erro", "Usuário inválido.");
+      return showToast("Usuário inválido.", "error");
 
     if (!nome.trim() || !email.trim())
-      return Alert.alert("Erro", "Preencha nome e e-mail.");
+      return showToast("Preencha nome e e-mail.", "warning");
 
     setSalvando(true);
     try {
@@ -153,7 +152,8 @@ export default function EditarUsuario({ route, navigation }: any) {
 
       const json = await res.json();
       if (!res.ok) {
-        return Alert.alert("Erro", json.message || "Erro ao atualizar usuário.");
+        showToast(json.message || "Erro ao atualizar usuário.", "error");
+        return;
       }
 
       const raw = await AsyncStorage.getItem("usuario");
@@ -168,10 +168,10 @@ export default function EditarUsuario({ route, navigation }: any) {
         })
       );
 
-      Alert.alert("Sucesso", "Informações atualizadas com sucesso!");
-      navigation.goBack();
+      showToast("Informações atualizadas com sucesso!", "success");
+      setTimeout(() => navigation.goBack(), 800);
     } catch {
-      Alert.alert("Erro", "Falha ao conectar com o servidor.");
+      showToast("Falha ao conectar com o servidor.", "error");
     } finally {
       setSalvando(false);
     }
