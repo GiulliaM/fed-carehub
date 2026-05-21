@@ -7,13 +7,14 @@ import React from "react";
 //import * as Notifications from "expo-notifications"; 
 import NavegadorRaiz from "./src/navigation/NavegadorRaiz";
 import { ProvedorTema } from "./src/context/ThemeContext";
-
-
+import { ToastProvider } from "./src/context/ToastContext";
 
 export default function App() {
   return (
     <ProvedorTema>
-      <NavegadorRaiz />
+      <ToastProvider>
+        <NavegadorRaiz />
+      </ToastProvider>
     </ProvedorTema>
   );
 } 
