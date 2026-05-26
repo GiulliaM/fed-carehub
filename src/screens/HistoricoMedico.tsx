@@ -1,17 +1,18 @@
 import React, { useCallback, useState } from "react";
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
+TextInput,
+StyleSheet,
   ScrollView,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  RefreshControl,
+  RefreshControl
 } from "react-native";
+import { Text } from "../components/Text";
+import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";

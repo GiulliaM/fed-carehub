@@ -1,14 +1,15 @@
 import React, { useCallback, useState } from "react";
 import {
   View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
+StyleSheet,
   ScrollView,
   ActivityIndicator,
   Image,
-  RefreshControl,
+  RefreshControl
 } from "react-native";
+import { Text } from "../components/Text";
+import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -16,7 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useTema } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
-import { sair, obterDadosUsuario } from "../utils/autenticacao";
+import { sair, obterDadosUsuario, normalizarFotoUrl } from "../utils/autenticacao";
 import { termoPaciente, termoPacientePlural } from "../utils/terminologia";
 import api from "../config/api";
 import { calcularIdade } from "../ferramentas/logicaData";
@@ -53,7 +54,7 @@ export default function Perfil({ navigation }: any) {
             email: res.data.email,
             tipo: res.data.tipo,
             telefone: res.data.telefone || "",
-            foto_url: res.data.foto_url || (meta as any).foto_url || "",
+            foto_url: normalizarFotoUrl(res.data.foto_url) || normalizarFotoUrl((meta as any).foto_url) || "",
           };
           setUser(userData);
           await AsyncStorage.setItem("usuario", JSON.stringify(userData));

@@ -1,15 +1,36 @@
-// App principal do CareHub, onde tudo começa (tipo o chefão do game)
-import { LogBox } from "react-native";
+import { LogBox, View, ActivityIndicator } from "react-native";
 LogBox.ignoreLogs(["Require cycle:"]);
 
 import React from "react";
-// O import pode ficar, ele não machuca ninguém sozinho
-//import * as Notifications from "expo-notifications"; 
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+  Poppins_800ExtraBold,
+} from "@expo-google-fonts/poppins";
 import NavegadorRaiz from "./src/navigation/NavegadorRaiz";
 import { ProvedorTema } from "./src/context/ThemeContext";
 import { ToastProvider } from "./src/context/ToastContext";
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+    Poppins_800ExtraBold,
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   return (
     <ProvedorTema>
       <ToastProvider>
@@ -17,4 +38,4 @@ export default function App() {
       </ToastProvider>
     </ProvedorTema>
   );
-} 
+}

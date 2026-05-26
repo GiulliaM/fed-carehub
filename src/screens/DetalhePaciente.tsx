@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
+StyleSheet,
   ScrollView,
-  ActivityIndicator,
+  ActivityIndicator
 } from "react-native";
+import { Text } from "../components/Text";
+import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";

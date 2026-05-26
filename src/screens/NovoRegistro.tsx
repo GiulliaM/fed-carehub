@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
+TextInput,
+StyleSheet,
   Alert,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
+  Platform
 } from "react-native";
+import { Text } from "../components/Text";
+import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTema } from "../context/ThemeContext";

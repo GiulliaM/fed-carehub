@@ -1,21 +1,23 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
+TextInput,
+StyleSheet,
   Alert,
   ScrollView,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
+  Platform
 } from "react-native";
+import { Text } from "../components/Text";
+import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
 import api from "../config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mascaraTelefone } from "../ferramentas/mascaras";
 
 // ─── Catálogo de categorias de cuidado ───────────────────────────────────────
 
@@ -329,7 +331,7 @@ export default function EditarPaciente({ route, navigation }: any) {
               placeholder="Telefone de contato"
               placeholderTextColor={cores.inputPlaceholder}
               value={telefoneContato}
-              onChangeText={setTelefoneContato}
+              onChangeText={(t) => setTelefoneContato(mascaraTelefone(t))}
               keyboardType="phone-pad"
             />
           </SectionCard>

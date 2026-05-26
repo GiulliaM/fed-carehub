@@ -1,17 +1,18 @@
 import React, { useCallback, useState } from "react";
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
+TextInput,
+StyleSheet,
   ScrollView,
   ActivityIndicator,
   Switch,
   KeyboardAvoidingView,
   Platform,
-  RefreshControl,
+  RefreshControl
 } from "react-native";
+import { Text } from "../components/Text";
+import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
@@ -19,6 +20,7 @@ import { useToast } from "../context/ToastContext";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../config/api";
+import { mascaraTelefone, mascaraPreco } from "../ferramentas/mascaras";
 
 const ESPECIALIDADES_SUGERIDAS = [
   "Alzheimer",
@@ -59,7 +61,7 @@ export default function PerfilCuidador({ navigation, route }: any) {
       const telefoneCadastro = raw ? (JSON.parse(raw).telefone || "") : "";
       if (perfil && typeof perfil === "object") {
         setBio(perfil.bio || "");
-        setPrecoHora(perfil.preco_hora != null ? String(perfil.preco_hora) : "");
+        setPrecoHora(perfil.preco_hora != null ? mascaraPreco(String(Math.round(perfil.preco_hora * 100))) : "");
         setCidade(perfil.cidade || "");
         setBairro(perfil.bairro || "");
         setTelefone(perfil.telefone || telefoneCadastro);
@@ -112,7 +114,7 @@ export default function PerfilCuidador({ navigation, route }: any) {
       setSaving(true);
       await api.post("/cuidador/perfil", {
         bio: bio.trim() || null,
-        preco_hora: precoHora ? parseFloat(precoHora.replace(",", ".")) : null,
+        preco_hora: precoHora ? parseFloat(precoHora.replace(/\./g, "").replace(",", ".")) : null,
         cidade: cidade.trim() || null,
         bairro: bairro.trim() || null,
         telefone: telefone.trim() || null,
@@ -252,8 +254,8 @@ export default function PerfilCuidador({ navigation, route }: any) {
               placeholder="Ex: 50,00"
               placeholderTextColor={cores.muted}
               value={precoHora}
-              onChangeText={setPrecoHora}
-              keyboardType="decimal-pad"
+              onChangeText={(t) => setPrecoHora(mascaraPreco(t))}
+              keyboardType="numeric"
             />
           </View>
 
@@ -282,7 +284,7 @@ export default function PerfilCuidador({ navigation, route }: any) {
               placeholder="(11) 99999-9999"
               placeholderTextColor={cores.muted}
               value={telefone}
-              onChangeText={setTelefone}
+              onChangeText={(t) => setTelefone(mascaraTelefone(t))}
               keyboardType="phone-pad"
             />
           </View>

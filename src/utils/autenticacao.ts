@@ -40,7 +40,7 @@ export async function salvarDadosUsuario(user: { usuario_id?: number; nome?: str
   }
 }
 
-export async function obterDadosUsuario(): Promise<{ usuario_id?: number; nome?: string; tipo?: string } | null> {
+export async function obterDadosUsuario(): Promise<{ usuario_id?: number; nome?: string; tipo?: string; foto_url?: string } | null> {
   try {
     const raw = await AsyncStorage.getItem(USER_KEY);
     if (!raw) return null;
@@ -49,4 +49,13 @@ export async function obterDadosUsuario(): Promise<{ usuario_id?: number; nome?:
     console.error("Erro ao obter dados do usuario:", e);
     return null;
   }
+}
+
+const SERVER_BASE = "https://legacyofthevaliant.com";
+
+export function normalizarFotoUrl(url: string | null | undefined): string {
+  if (!url || url.startsWith("file://")) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (url.startsWith("/")) return `${SERVER_BASE}${url}`;
+  return `${SERVER_BASE}/${url}`;
 }

@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useState, useMemo } from "react";
 import {
   View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
+FlatList,
+ActivityIndicator,
   StyleSheet,
   Alert,
-  RefreshControl,
+  RefreshControl
 } from "react-native";
+import { Text } from "../components/Text";
+import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { Ionicons } from "@expo/vector-icons";

@@ -1,5 +1,8 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { Animated, StyleSheet, Image } from "react-native";
+import { Text } from "../components/Text";
+import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTema } from "../context/ThemeContext";
 

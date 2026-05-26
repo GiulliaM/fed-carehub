@@ -1,24 +1,26 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
+TextInput,
+StyleSheet,
   Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Image,
+  Image
 } from "react-native";
+import { Text } from "../components/Text";
+import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
+
 import { useToast } from "../context/ToastContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useTema } from "../context/ThemeContext";
 import { API_URL } from "../config/api";
-import { obterToken } from "../utils/autenticacao";
+import { obterToken, normalizarFotoUrl } from "../utils/autenticacao";
+import { mascaraTelefone } from "../ferramentas/mascaras";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function EditarUsuario({ route, navigation }: any) {
@@ -108,7 +110,11 @@ export default function EditarUsuario({ route, navigation }: any) {
 
       const json = await res.json();
       if (res.ok) {
-        const novaUrl = json.foto_url || uri;
+        const novaUrl = normalizarFotoUrl(json.foto_url);
+        if (!novaUrl) {
+          showToast("Foto enviada, mas não foi possível obter a URL do servidor.", "warning");
+          return;
+        }
         setFotoUrl(novaUrl);
         const raw = await AsyncStorage.getItem("usuario");
         const stored = raw ? JSON.parse(raw) : {};
@@ -271,7 +277,7 @@ export default function EditarUsuario({ route, navigation }: any) {
               placeholder="(11) 98765-4321"
               placeholderTextColor={cores.inputPlaceholder}
               value={telefone}
-              onChangeText={setTelefone}
+              onChangeText={(t) => setTelefone(mascaraTelefone(t))}
               keyboardType="phone-pad"
               style={[
                 styles.input,
