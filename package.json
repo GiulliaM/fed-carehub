@@ -24,7 +24,7 @@
     "date-fns": "^4.2.1",
     "dayjs": "^1.11.20",
     "expo": "~55.0.13",
-    "expo-font": "^56.0.5",
+    "expo-font": "55.0.8",
     "expo-image-picker": "~55.0.20",
     "expo-notifications": "~55.0.18",
     "react": "19.2.0",

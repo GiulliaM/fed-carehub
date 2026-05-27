@@ -6,7 +6,6 @@ export type DiarioCategoria =
   | "digestao"
   | "atividade_fisica";
 
-// Um item do diário, tipo uma anotação
 export interface DiarioItem {
   codigo: string;
   label: string;
@@ -16,7 +15,6 @@ export interface DiarioItem {
   contagem?: boolean;
 }
 
-// Categoria do diário, pra organizar melhor
 export interface CategoriaDiario {
   key: DiarioCategoria;
   label: string;
