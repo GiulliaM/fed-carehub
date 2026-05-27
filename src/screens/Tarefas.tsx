@@ -25,7 +25,7 @@ import { useTema } from "../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import api from "../config/api";
-import { cancelarLembreteTarefa } from "../utils/notificacoes";
+import { cancelarLembreteTarefa, agendarLembreteTarefa } from "../utils/notificacoes";
 import { Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
@@ -82,6 +82,12 @@ export default function Tarefas({ navigation }: any) {
       }));
 
       setTarefas(tarefasCorrigidas);
+
+      for (const t of tarefasCorrigidas) {
+        if (!t.concluida && t.hora && t.data) {
+          agendarLembreteTarefa(t.tarefa_id, t.titulo, t.data, t.hora);
+        }
+      }
     } catch {
       setTarefas([]);
       Alert.alert("Erro", "Não foi possível carregar as tarefas.");
