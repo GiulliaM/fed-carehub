@@ -1,4 +1,3 @@
-// NovaTarefa.tsx
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -38,7 +37,6 @@ export default function NovaTarefa({ navigation, route }: any) {
   const { cores } = useTema();
   const editingTarefa = route?.params?.tarefa ?? null;
 
-  // Use dayjs to avoid timezone shifts
   const [titulo, setTitulo] = useState(editingTarefa?.titulo ?? "");
   const [detalhes, setDetalhes] = useState(editingTarefa?.detalhes ?? "");
   const [data, setData] = useState<Date>(
@@ -119,7 +117,7 @@ export default function NovaTarefa({ navigation, route }: any) {
         return;
       }
 
-      // EDIÇÃO
+      // edicao
       if (editingTarefa && editingTarefa.tarefa_id) {
         const payload: any = {
           titulo: titulo.trim(),
@@ -145,7 +143,7 @@ export default function NovaTarefa({ navigation, route }: any) {
         return;
       }
 
-      // CRIAÇÃO - sem repetição
+      // sem repeticao
       if (diasRepeticaoArr.length === 0) {
         const payload: any = {
           titulo: titulo.trim(),
@@ -171,7 +169,7 @@ export default function NovaTarefa({ navigation, route }: any) {
         return;
       }
 
-      // CRIAÇÃO - com repetição (gera tarefas individuais)
+      // com repeticao
       const tarefasCriadas: string[] = [];
       const dataInicio = dayjs(data);
       const quantidadeSemanas = 4;

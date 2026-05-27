@@ -40,14 +40,12 @@ export default function EditMedicamento({ route, navigation }: any) {
   const { medicamento } = route.params;
   const { cores, tf } = useTema();
 
-  // Bloco 1 — Identificação
   const [nome, setNome] = useState(medicamento?.nome || "");
   const [formato, setFormato] = useState(resolverFormato(medicamento?.dosagem));
   const [concentracao, setConcentracao] = useState(
     medicamento?.mg ? String(medicamento.mg) : ""
   );
 
-  // Bloco 2 — Posologia / Aplicação
   const [qtdDose, setQtdDose] = useState(
     medicamento?.qtd_comprimidos ? String(medicamento.qtd_comprimidos) : ""
   );
@@ -55,7 +53,6 @@ export default function EditMedicamento({ route, navigation }: any) {
     medicamento?.local_aplicacao ?? ""
   );
 
-  // Bloco 3 — Agendamento
   const [usoContinuo, setUsoContinuo] = useState(!!medicamento?.uso_continuo);
   const [duracaoDays, setDuracaoDays] = useState(
     medicamento?.duracao_days ? String(medicamento.duracao_days) : ""
@@ -164,7 +161,6 @@ export default function EditMedicamento({ route, navigation }: any) {
           Editar Medicamento
         </Text>
 
-        {/* ━━━━━━━━━━━━━━━━━━ Bloco 1 — Detalhes ━━━━━━━━━━━━━━━━━━ */}
         <View style={[styles.bloco, { backgroundColor: cores.card, borderColor: cores.border }]}>
           <View style={styles.blocoHeader}>
             <Ionicons name="medical-outline" size={20} color={cores.primary} />
@@ -212,7 +208,6 @@ export default function EditMedicamento({ route, navigation }: any) {
           )}
         </View>
 
-        {/* ━━━━━━━━━━━━━━━━━━ Bloco 2 — Posologia / Aplicação ━━━━━━━━━━━━━━━━━━ */}
         <View style={[styles.bloco, { backgroundColor: cores.card, borderColor: cores.border }]}>
           <View style={styles.blocoHeader}>
             <Ionicons name="timer-outline" size={20} color={cores.primary} />
@@ -249,7 +244,6 @@ export default function EditMedicamento({ route, navigation }: any) {
           )}
         </View>
 
-        {/* ━━━━━━━━━━━━━━━━━━ Bloco 3 — Agendamento ━━━━━━━━━━━━━━━━━━ */}
         <View style={[styles.bloco, { backgroundColor: cores.card, borderColor: cores.border }]}>
           <View style={styles.blocoHeader}>
             <Ionicons name="calendar-outline" size={20} color={cores.primary} />

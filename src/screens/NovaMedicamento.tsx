@@ -32,16 +32,11 @@ const FORMATOS = [
 export default function NovaMedicamento({ navigation }: any) {
   const { cores, tf } = useTema();
 
-  // Bloco 1 — Identificação
   const [nome, setNome] = useState("");
   const [formato, setFormato] = useState("Comprimido");
   const [concentracao, setConcentracao] = useState("");
-
-  // Bloco 2 — Posologia
   const [qtdDose, setQtdDose] = useState("");
   const [localAplicacao, setLocalAplicacao] = useState("");
-
-  // Bloco 3 — Agendamento
   const [usoContinuo, setUsoContinuo] = useState(false);
   const [duracaoDays, setDuracaoDays] = useState("");
   const [horarios, setHorarios] = useState<string[]>([]);
@@ -142,7 +137,6 @@ export default function NovaMedicamento({ navigation }: any) {
           Novo Medicamento
         </Text>
 
-        {/* ━━━━━━━━━━━━━━━━━━ Bloco 1 — Detalhes ━━━━━━━━━━━━━━━━━━ */}
         <View style={[styles.bloco, { backgroundColor: cores.card, borderColor: cores.border }]}>
           <View style={styles.blocoHeader}>
             <Ionicons name="medical-outline" size={20} color={cores.primary} />
@@ -190,7 +184,6 @@ export default function NovaMedicamento({ navigation }: any) {
           )}
         </View>
 
-        {/* ━━━━━━━━━━━━━━━━━━ Bloco 2 — Posologia ━━━━━━━━━━━━━━━━━━ */}
         <View style={[styles.bloco, { backgroundColor: cores.card, borderColor: cores.border }]}>
           <View style={styles.blocoHeader}>
             <Ionicons name="timer-outline" size={20} color={cores.primary} />
@@ -236,7 +229,6 @@ export default function NovaMedicamento({ navigation }: any) {
           )}
         </View>
 
-        {/* ━━━━━━━━━━━━━━━━━━ Bloco 3 — Agendamento ━━━━━━━━━━━━━━━━━━ */}
         <View style={[styles.bloco, { backgroundColor: cores.card, borderColor: cores.border }]}>
           <View style={styles.blocoHeader}>
             <Ionicons name="calendar-outline" size={20} color={cores.primary} />

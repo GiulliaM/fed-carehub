@@ -18,8 +18,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../config/api";
 import { mascaraTelefone } from "../ferramentas/mascaras";
 
-// ─── Catálogo de categorias de cuidado ───────────────────────────────────────
-
 const CATEGORIAS_CUIDADO = [
   {
     key: "fisicas",
@@ -73,8 +71,6 @@ const CATEGORIAS_CUIDADO = [
   },
 ];
 
-// ─── Componente ───────────────────────────────────────────────────────────────
-
 export default function CadastrarPaciente({ route, navigation }: any) {
   const { cores, tf } = useTema();
   const primeiroAcesso = route.params?.primeiroAcesso ?? false;
@@ -93,18 +89,13 @@ export default function CadastrarPaciente({ route, navigation }: any) {
     return s || null;
   };
 
-  // Bloco 1 — Identificação
   const [nome, setNome] = useState("");
   const [genero, setGenero] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
   const [responsavelLegal, setResponsavelLegal] = useState("");
   const [telefoneContato, setTelefoneContato] = useState("");
-
-  // Bloco 2 — Categorias de cuidado
   const [categorias, setCategorias] = useState<string[]>([]);
   const [expandedCat, setExpandedCat] = useState<string | null>("fisicas");
-
-  // Bloco 3 — Observações
   const [restricoes, setRestricoes] = useState("");
   const [observacoesRotina, setObservacoesRotina] = useState("");
 
@@ -155,8 +146,6 @@ export default function CadastrarPaciente({ route, navigation }: any) {
     }
   };
 
-  // ─── Renderização ────────────────────────────────────────────────────────────
-
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: cores.background }]}>
       <KeyboardAvoidingView
@@ -178,7 +167,6 @@ export default function CadastrarPaciente({ route, navigation }: any) {
             Cadastrar Paciente
           </Text>
 
-          {/* ── Bloco 1: Identificação ─────────────────────────────── */}
           <SectionCard icon="person-outline" label="Identificação" cores={cores} tf={tf}>
             <TextInput
               style={[styles.input, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
@@ -228,7 +216,6 @@ export default function CadastrarPaciente({ route, navigation }: any) {
             />
           </SectionCard>
 
-          {/* ── Bloco 2: Categorias de cuidado ────────────────────── */}
           <SectionCard icon="heart-outline" label="Categorias de Cuidado" cores={cores} tf={tf}>
             <Text style={[styles.catSubtitle, { color: cores.muted, fontSize: tf(13) }]}>
               Selecione todas que se aplicam ao paciente
@@ -292,7 +279,6 @@ export default function CadastrarPaciente({ route, navigation }: any) {
             })}
           </SectionCard>
 
-          {/* ── Bloco 3: Observações ───────────────────────────────── */}
           <SectionCard icon="document-text-outline" label="Observações" cores={cores} tf={tf}>
             <TextInput
               style={[styles.input, styles.textArea, { backgroundColor: cores.inputBg, color: cores.inputText, borderColor: cores.border }]}
@@ -312,7 +298,6 @@ export default function CadastrarPaciente({ route, navigation }: any) {
             />
           </SectionCard>
 
-          {/* ── Botão salvar ───────────────────────────────────────── */}
           <TouchableOpacity
             style={[styles.btnSalvar, { backgroundColor: cores.primary }]}
             onPress={cadastrar}
@@ -326,8 +311,6 @@ export default function CadastrarPaciente({ route, navigation }: any) {
   );
 }
 
-// ─── Sub-componente de bloco ─────────────────────────────────────────────────
-
 function SectionCard({ icon, label, children, cores, tf }: any) {
   return (
     <View style={[styles.sectionCard, { backgroundColor: cores.card, borderColor: cores.border }]}>
@@ -339,8 +322,6 @@ function SectionCard({ icon, label, children, cores, tf }: any) {
     </View>
   );
 }
-
-// ─── Estilos ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },

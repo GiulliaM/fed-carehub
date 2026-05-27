@@ -27,8 +27,6 @@ import "dayjs/locale/pt-br";
 dayjs.extend(isSameOrBefore);
 dayjs.locale("pt-br");
 
-// ─── Locale PT-BR ─────────────────────────────────────────────────────────────
-
 LocaleConfig.locales["pt-br"] = {
   monthNames: ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],
   monthNamesShort: ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],
@@ -37,8 +35,6 @@ LocaleConfig.locales["pt-br"] = {
   today: "Hoje",
 };
 LocaleConfig.defaultLocale = "pt-br";
-
-// ─── Tipos ────────────────────────────────────────────────────────────────────
 
 type SlotDose = {
   key: string;
@@ -49,8 +45,6 @@ type SlotDose = {
   doseInfo: string;
   tomado: boolean;
 };
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function normalizarData(valor: any): string {
   if (!valor) return "";
@@ -109,8 +103,6 @@ function medicamentoAtivoNaData(med: any, dataStr: string): boolean {
   return dataStr === inicioStr;
 }
 
-// ─── Componente ───────────────────────────────────────────────────────────────
-
 export default function Medicamentos({ navigation }: any) {
   const { cores, tf, nomeTema } = useTema();
   const route = useRoute<any>();
@@ -130,7 +122,6 @@ export default function Medicamentos({ navigation }: any) {
     }
   }, [route.params?.resetToToday]);
 
-  // ── Busca ──────────────────────────────────────────────────────────────────
 
   const fetchTudo = useCallback(async () => {
     setCarregando(true);
@@ -213,7 +204,6 @@ export default function Medicamentos({ navigation }: any) {
     [pacienteId, fetchDoses]
   );
 
-  // ── Slots do dia ──────────────────────────────────────────────────────────
 
   const agoraHora = dayjs().format("HH:mm");
 
@@ -247,7 +237,6 @@ export default function Medicamentos({ navigation }: any) {
     return lista.sort((a, b) => a.horario.localeCompare(b.horario));
   }, [medicamentos, doses, dataSelecionada]);
 
-  // ── Toggle dose (otimista) ────────────────────────────────────────────────
 
   const handleToggle = useCallback(
     async (slot: SlotDose) => {
@@ -288,7 +277,6 @@ export default function Medicamentos({ navigation }: any) {
     [dataSelecionada]
   );
 
-  // ── Marcações do calendário ───────────────────────────────────────────────
 
   const marcarDias = useMemo(() => {
     const marked: Record<string, any> = {};
@@ -337,7 +325,6 @@ export default function Medicamentos({ navigation }: any) {
     return marked;
   }, [medicamentos, dataSelecionada, cores.primary, cores.accent, hoje]);
 
-  // ── Layout ────────────────────────────────────────────────────────────────
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: cores.background }]}>
@@ -485,7 +472,6 @@ export default function Medicamentos({ navigation }: any) {
   );
 }
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
