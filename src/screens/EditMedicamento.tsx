@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import api from "../config/api";
 import { useTema } from "../context/ThemeContext";
 import dayjs from "dayjs";
+import { agendarLembreteMedicamento, cancelarLembreteMedicamento } from "../utils/notificacoes";
 
 const FORMATOS = [
   { label: "Comprimido", value: "Comprimido", unit: "comprimido(s)", verb: "Tomar", concentLabel: "Concentração (mg)" },
@@ -144,6 +145,16 @@ export default function EditMedicamento({ route, navigation }: any) {
         ? `/medicamentos/${medicamento.medicamento_id}?atualizar_grupo=true`
         : `/medicamentos/${medicamento.medicamento_id}`;
       await api.patch(url, payload);
+
+      const medId = medicamento.medicamento_id;
+      const horariosAntigos: string[] = medicamento?.horarios || [];
+      for (const h of horariosAntigos) {
+        cancelarLembreteMedicamento(medId, h).catch(() => {});
+      }
+      for (const h of horarios) {
+        agendarLembreteMedicamento(medId, nome.trim(), h).catch(() => {});
+      }
+
       Alert.alert("Sucesso", "Medicamento atualizado!");
       navigation.goBack();
     } catch {

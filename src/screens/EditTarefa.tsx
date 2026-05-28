@@ -19,6 +19,7 @@ import api from "../config/api";
 import { useTema } from "../context/ThemeContext";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
+import { agendarLembreteTarefa, cancelarLembreteTarefa } from "../utils/notificacoes";
 
 dayjs.locale("pt-br");
 
@@ -56,13 +57,17 @@ export default function EditTarefa({ route, navigation }: any) {
     }
     setSalvando(true);
     try {
+      const dataFmt = dayjs(data).format("YYYY-MM-DD");
+      const horaFmt = formatarHoraDB(hora);
       await api.patch(`/tarefas/${tarefa.tarefa_id}`, {
         titulo,
         detalhes,
-        data: dayjs(data).format("YYYY-MM-DD"),
-        hora: formatarHoraDB(hora),
+        data: dataFmt,
+        hora: horaFmt,
         concluida: tarefa.concluida ? 1 : 0,
       });
+      await cancelarLembreteTarefa(tarefa.tarefa_id);
+      agendarLembreteTarefa(tarefa.tarefa_id, titulo, dataFmt, horaFmt).catch(() => {});
       Alert.alert("Sucesso", "Tarefa atualizada com sucesso!");
       navigation.goBack();
     } catch {
@@ -81,6 +86,7 @@ export default function EditTarefa({ route, navigation }: any) {
         onPress: async () => {
           try {
             await api.delete(`/tarefas/${tarefa.tarefa_id}`);
+            cancelarLembreteTarefa(tarefa.tarefa_id).catch(() => {});
             navigation.goBack();
           } catch {
             Alert.alert("Erro", "Não foi possível excluir.");

@@ -20,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../config/api";
 import { Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
+import { agendarLembreteMedicamento } from "../utils/notificacoes";
 
 const FORMATOS = [
   { label: "Comprimido", value: "Comprimido", unit: "comprimido(s)", verb: "Tomar", concentLabel: "Concentração (mg)" },
@@ -105,7 +106,7 @@ export default function NovaMedicamento({ navigation }: any) {
         return;
       }
 
-      await api.post("/medicamentos", {
+      const res = await api.post("/medicamentos", {
         nome,
         dosagem: formato,
         mg: !isPomada && concentracao ? parseInt(concentracao, 10) : null,
@@ -118,6 +119,13 @@ export default function NovaMedicamento({ navigation }: any) {
         uso_continuo: usoContinuo ? 1 : 0,
         paciente_id: paciente.paciente_id,
       });
+
+      const medId = res.data?.medicamento_id;
+      if (medId && dataLocal(inicio) <= dataLocal(new Date())) {
+        for (const hor of horarios) {
+          agendarLembreteMedicamento(medId, nome.trim(), hor).catch(() => {});
+        }
+      }
 
       Alert.alert("Sucesso", "Medicamento cadastrado com sucesso!");
       navigation.goBack();
