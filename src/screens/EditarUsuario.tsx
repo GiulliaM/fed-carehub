@@ -4,6 +4,7 @@ import {
 TextInput,
 StyleSheet,
   Alert,
+  ActionSheetIOS,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -71,20 +72,51 @@ export default function EditarUsuario({ route, navigation }: any) {
     }
   };
 
-  const escolherFoto = async () => {
-    const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissao.granted) {
-      showToast("Precisamos de acesso à sua galeria para alterar a foto.", "warning");
-      return;
+  const abrirPicker = async (origem: "camera" | "galeria") => {
+    if (origem === "camera") {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) {
+        showToast("Precisamos de acesso à câmera para tirar uma foto.", "warning");
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.6,
+      });
+      if (!result.canceled && result.assets[0]) await uploadFoto(result.assets[0].uri);
+    } else {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        showToast("Precisamos de acesso à galeria para alterar a foto.", "warning");
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 0.6,
+      });
+      if (!result.canceled && result.assets[0]) await uploadFoto(result.assets[0].uri);
     }
+  };
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      await uploadFoto(result.assets[0].uri);
+  const escolherFoto = () => {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ["Cancelar", "Câmera", "Galeria"],
+          cancelButtonIndex: 0,
+        },
+        (idx) => {
+          if (idx === 1) abrirPicker("camera");
+          if (idx === 2) abrirPicker("galeria");
+        }
+      );
+    } else {
+      Alert.alert("Foto de perfil", "Escolha uma opção:", [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Câmera", onPress: () => abrirPicker("camera") },
+        { text: "Galeria", onPress: () => abrirPicker("galeria") },
+      ]);
     }
   };
 
@@ -94,8 +126,8 @@ export default function EditarUsuario({ route, navigation }: any) {
     try {
       const token = await obterToken();
       const filename = uri.split("/").pop() || "foto.jpg";
-      const ext = filename.split(".").pop() || "jpeg";
-      const type = `image/${ext}`;
+      const ext = (filename.split(".").pop() || "jpeg").toLowerCase();
+      const type = `image/${ext === "jpg" ? "jpeg" : ext}`;
 
       const formData = new FormData();
       formData.append("foto", { uri, name: filename, type } as any);
