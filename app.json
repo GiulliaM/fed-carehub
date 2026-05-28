@@ -19,12 +19,13 @@
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "extra": {
       "eas": {
-        "projectId": "c44203f8-9a6b-4054-b2e0-bbf69ab2fd74"
+        "projectId": "692c08af-0a6f-4b5d-a0ae-0b519bf7564b"
       }
     },
     "plugins": [
@@ -42,6 +43,7 @@
           "cameraPermission": "O CareHub precisa acessar sua câmera para tirar uma foto de perfil."
         }
       ]
-    ]
+    ],
+    "owner": "maria_rodrigues"
   }
 }
