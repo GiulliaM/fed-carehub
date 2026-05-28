@@ -71,7 +71,6 @@ export async function agendarLembreteMedicamento(
         title: "Hora do medicamento",
         body: nome,
         sound: "default",
-        android: { channelId: CANAL_ID },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -127,7 +126,6 @@ export async function agendarLembreteTarefa(
         title: "Tarefa",
         body: titulo,
         sound: "default",
-        android: { channelId: CANAL_ID },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,

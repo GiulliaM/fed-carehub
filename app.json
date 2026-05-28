@@ -18,7 +18,8 @@
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.CAMERA"
       ]
     },
     "extra": {
@@ -32,6 +33,13 @@
         "expo-notifications",
         {
           "color": "#60A5FA"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O CareHub precisa acessar sua galeria para alterar a foto de perfil.",
+          "cameraPermission": "O CareHub precisa acessar sua câmera para tirar uma foto de perfil."
         }
       ]
     ]
