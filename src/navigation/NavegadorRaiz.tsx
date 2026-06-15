@@ -10,6 +10,8 @@ import Login from "../screens/Login";
 import Cadastro from "../screens/Cadastro";
 import CarregandoDados from "../screens/CarregandoDados";
 import Abas from "./Abas";
+import AbasAdmin from "./AbasAdmin";
+import AdminDetalhesCuidador from "../screens/admin/AdminDetalhesCuidador";
 import CadastrarPaciente from "../screens/CadastrarPaciente";
 import NovaTarefa from "../screens/NovaTarefa";
 import NovaMedicamento from "../screens/NovaMedicamento";
@@ -28,7 +30,7 @@ import Configuracoes from "../screens/Configuracoes";
 import Artigo from "../screens/Artigo";
 import Dicas from "../screens/Dicas";
 import DetalhePaciente from "../screens/DetalhePaciente";
-import { obterToken } from "../utils/autenticacao";
+import { obterToken, obterDadosUsuario } from "../utils/autenticacao";
 
 const Stack = createNativeStackNavigator();
 export const referenciaNavegacao = createNavigationContainerRef();
@@ -41,15 +43,17 @@ export default function NavegadorRaiz() {
     (async () => {
       const token = await obterToken();
       if (token) {
+        const usuario = await obterDadosUsuario();
+        const destino = usuario?.tipo === "admin" ? "AbasAdmin" : "CarregandoDados";
         setTimeout(() => {
           if ((referenciaNavegacao as any).resetRoot) {
             try {
-              (referenciaNavegacao as any).resetRoot({ index: 0, routes: [{ name: "CarregandoDados" }] });
+              (referenciaNavegacao as any).resetRoot({ index: 0, routes: [{ name: destino }] });
             } catch (e) {
-              (referenciaNavegacao as any).navigate?.("CarregandoDados");
+              (referenciaNavegacao as any).navigate?.(destino);
             }
           } else {
-            (referenciaNavegacao as any).navigate?.("CarregandoDados");
+            (referenciaNavegacao as any).navigate?.(destino);
           }
         }, 100);
       }
@@ -68,6 +72,8 @@ export default function NavegadorRaiz() {
         <Stack.Screen name="CarregandoDados" component={CarregandoDados} options={{ headerShown: false }} />
         <Stack.Screen name="CadastrarPaciente" component={CadastrarPaciente} options={{ headerShown: false }} />
         <Stack.Screen name="Abas" component={Abas} options={{ headerShown: false }} />
+        <Stack.Screen name="AbasAdmin" component={AbasAdmin} options={{ headerShown: false }} />
+        <Stack.Screen name="AdminDetalhesCuidador" component={AdminDetalhesCuidador} options={{ headerShown: false }} />
         <Stack.Screen name="NovaTarefa" component={NovaTarefa} options={{ headerShown: false }} />
         <Stack.Screen name="NovoRegistro" component={NovoRegistro} options={{ headerShown: false }} />
         <Stack.Screen name="NovaMedicamento" component={NovaMedicamento} options={{ headerShown: false }} />

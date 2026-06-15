@@ -20,7 +20,7 @@ import { useToast } from "../context/ToastContext";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../config/api";
-import { mascaraTelefone, mascaraPreco } from "../ferramentas/mascaras";
+import { mascaraTelefone, mascaraPreco, mascaraCPF, validarCPF } from "../ferramentas/mascaras";
 
 const ESPECIALIDADES_SUGERIDAS = [
   "Alzheimer",
@@ -49,6 +49,9 @@ export default function PerfilCuidador({ navigation, route }: any) {
   const [disponivelBusca, setDisponivelBusca] = useState(true);
   const [especialidades, setEspecialidades] = useState<string[]>([]);
   const [novaTag, setNovaTag] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [statusValidacao, setStatusValidacao] = useState<"pendente" | "aprovado" | "rejeitado" | null>(null);
+  const [motivoRejeicao, setMotivoRejeicao] = useState<string | null>(null);
 
   const carregarPerfil = useCallback(async () => {
     try {
@@ -66,6 +69,9 @@ export default function PerfilCuidador({ navigation, route }: any) {
         setBairro(perfil.bairro || "");
         setTelefone(perfil.telefone || telefoneCadastro);
         setDisponivelBusca(perfil.disponivel_busca !== 0);
+        setCpf(perfil.cpf ? mascaraCPF(perfil.cpf) : "");
+        setStatusValidacao(perfil.status || "pendente");
+        setMotivoRejeicao(perfil.motivo_rejeicao || null);
         const esp = perfil.especialidades;
         setEspecialidades(
           Array.isArray(esp) ? esp : typeof esp === "string" ? JSON.parse(esp || "[]") : []
@@ -110,6 +116,10 @@ export default function PerfilCuidador({ navigation, route }: any) {
   };
 
   const salvar = async () => {
+    if (cpf.trim() && !validarCPF(cpf)) {
+      showToast("CPF inválido. Verifique o número informado.", "warning");
+      return;
+    }
     try {
       setSaving(true);
       await api.post("/cuidador/perfil", {
@@ -118,6 +128,7 @@ export default function PerfilCuidador({ navigation, route }: any) {
         cidade: cidade.trim() || null,
         bairro: bairro.trim() || null,
         telefone: telefone.trim() || null,
+        cpf: cpf.trim() || null,
         disponivel_busca: disponivelBusca,
         especialidades,
       });
@@ -176,6 +187,41 @@ export default function PerfilCuidador({ navigation, route }: any) {
             )}
           </View>
         </View>
+
+        {statusValidacao && (
+          <View
+            style={[
+              styles.statusBanner,
+              {
+                backgroundColor:
+                  statusValidacao === "aprovado"
+                    ? cores.success
+                    : statusValidacao === "rejeitado"
+                    ? cores.danger
+                    : cores.warning,
+              },
+            ]}
+          >
+            <Ionicons
+              name={
+                statusValidacao === "aprovado"
+                  ? "checkmark-circle"
+                  : statusValidacao === "rejeitado"
+                  ? "close-circle"
+                  : "time"
+              }
+              size={18}
+              color="#fff"
+            />
+            <Text style={styles.statusBannerText}>
+              {statusValidacao === "aprovado"
+                ? "Perfil aprovado — você aparece nas buscas"
+                : statusValidacao === "rejeitado"
+                ? `Perfil rejeitado${motivoRejeicao ? `: ${motivoRejeicao}` : ""}`
+                : "Perfil em análise pelo administrador"}
+            </Text>
+          </View>
+        )}
 
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -278,6 +324,18 @@ export default function PerfilCuidador({ navigation, route }: any) {
           </View>
 
           <View style={[styles.card, { backgroundColor: cores.card }]}>
+            <Text style={[styles.label, { color: cores.text }]}>CPF</Text>
+            <TextInput
+              style={[styles.input, { color: cores.text, borderColor: cores.muted }]}
+              placeholder="000.000.000-00"
+              placeholderTextColor={cores.muted}
+              value={cpf}
+              onChangeText={(t) => setCpf(mascaraCPF(t))}
+              keyboardType="numeric"
+            />
+          </View>
+
+          <View style={[styles.card, { backgroundColor: cores.card }]}>
             <Text style={[styles.label, { color: cores.text }]}>Telefone (WhatsApp)</Text>
             <TextInput
               style={[styles.input, { color: cores.text, borderColor: cores.muted }]}
@@ -333,6 +391,14 @@ const styles = StyleSheet.create({
   headerTexts: { flex: 1 },
   title: { fontSize: 20, fontWeight: "700" },
   subtitle: { fontSize: 13, marginTop: 2 },
+  statusBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  statusBannerText: { color: "#fff", fontWeight: "600", fontSize: 13, flex: 1 },
   scroll: { padding: 16, paddingBottom: 40 },
   card: {
     borderRadius: 12,

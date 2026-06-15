@@ -55,7 +55,8 @@ export default function Login({ navigation }: any) {
 
         await salvarToken(token);
         await AsyncStorage.setItem("usuario", JSON.stringify(userData));
-        navigation.reset({ index: 0, routes: [{ name: "CarregandoDados" }] });
+        const destino = userData.tipo === "admin" ? "AbasAdmin" : "CarregandoDados";
+        navigation.reset({ index: 0, routes: [{ name: destino }] });
       } else {
         showToast("Credenciais inválidas.", "error");
       }
