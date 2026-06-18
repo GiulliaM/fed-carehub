@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
 ScrollView,
   ActivityIndicator,
   StyleSheet,
-  RefreshControl
+  RefreshControl,
+  InteractionManager
 } from "react-native";
 import { Text } from "../components/Text";
 import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
@@ -21,6 +22,7 @@ import "dayjs/locale/pt-br";
 import api from "../config/api";
 import { termoPaciente } from "../utils/terminologia";
 import { calcularIdade } from "../ferramentas/logicaData";
+import { onboardingFoiVisto } from "../utils/onboarding";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -139,6 +141,26 @@ export default function Home({ navigation }: any) {
   useEffect(() => {
     load();
   }, []);
+
+  // mostra o tutorial de boas-vindas 1x pro usuario novo.
+  // usa useFocusEffect + InteractionManager pra disparar so quando a Home ja
+  // esta estavel e em foco (se navegar durante a transicao do reset, a chamada e descartada).
+  const onboardingChecado = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (onboardingChecado.current) return;
+      onboardingChecado.current = true;
+      const tarefa = InteractionManager.runAfterInteractions(async () => {
+        try {
+          const raw = await AsyncStorage.getItem("usuario");
+          const usuario = raw ? JSON.parse(raw) : null;
+          const visto = await onboardingFoiVisto(usuario?.usuario_id);
+          if (!visto) navigation.navigate("Onboarding");
+        } catch {}
+      });
+      return () => tarefa.cancel();
+    }, [navigation])
+  );
 
   useFocusEffect(
     useCallback(() => {

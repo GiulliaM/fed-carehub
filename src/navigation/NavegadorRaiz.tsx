@@ -30,6 +30,7 @@ import Configuracoes from "../screens/Configuracoes";
 import Artigo from "../screens/Artigo";
 import Dicas from "../screens/Dicas";
 import DetalhePaciente from "../screens/DetalhePaciente";
+import Onboarding from "../screens/Onboarding";
 import { obterToken, obterDadosUsuario } from "../utils/autenticacao";
 
 const Stack = createNativeStackNavigator();
@@ -91,6 +92,7 @@ export default function NavegadorRaiz() {
         <Stack.Screen name="Artigo" component={Artigo} options={{ headerShown: false }} />
         <Stack.Screen name="Dicas" component={Dicas} options={{ headerShown: false }} />
         <Stack.Screen name="DetalhePaciente" component={DetalhePaciente} options={{ headerShown: false }} />
+        <Stack.Screen name="Onboarding" component={Onboarding} options={{ headerShown: false, animation: "fade" }} />
       </Stack.Navigator>
 
       {verificando && (
