@@ -60,9 +60,10 @@ export default function Cadastro({ navigation }: any) {
         if ((res.data?.usuario?.tipo || tipo) === "familiar") {
           navigation.reset({ index: 0, routes: [{ name: "CadastrarPaciente", params: { primeiroAcesso: true } }] });
         } else {
+          // cuidador novo completa o perfil e segue pra analise (nao cai nas Abas ainda)
           navigation.reset({
-            index: 1,
-            routes: [{ name: "Abas" }, { name: "PerfilCuidador", params: { primeiroAcesso: true } }],
+            index: 0,
+            routes: [{ name: "PerfilCuidador", params: { primeiroAcesso: true } }],
           });
         }
       }

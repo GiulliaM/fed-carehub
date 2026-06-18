@@ -116,8 +116,17 @@ export default function PerfilCuidador({ navigation, route }: any) {
   };
 
   const salvar = async () => {
-    if (cpf.trim() && !validarCPF(cpf)) {
-      showToast("CPF inválido. Verifique o número informado.", "warning");
+    // dados obrigatorios pra analise do perfil (ajuda a evitar cadastro falso/incompleto)
+    if (!cpf.trim() || !validarCPF(cpf)) {
+      showToast("Informe um CPF válido.", "warning");
+      return;
+    }
+    if (telefone.replace(/\D/g, "").length < 10) {
+      showToast("Informe um telefone válido com DDD.", "warning");
+      return;
+    }
+    if (!cidade.trim()) {
+      showToast("Informe a cidade onde você atende.", "warning");
       return;
     }
     try {
@@ -138,9 +147,10 @@ export default function PerfilCuidador({ navigation, route }: any) {
         await AsyncStorage.setItem("usuario", JSON.stringify({ ...u, telefone: telefone.trim() || null }));
       }
       if (primeiroAcesso) {
-        navigation.reset({ index: 0, routes: [{ name: "Abas" }] });
+        // cuidador novo nao entra direto: vai pra tela de analise ate ser aprovado
+        navigation.reset({ index: 0, routes: [{ name: "CuidadorEmAnalise" }] });
       } else {
-        showToast("Perfil atualizado com sucesso!", "success");
+        showToast("Perfil enviado para análise!", "success");
         setTimeout(() => navigation.goBack(), 800);
       }
     } catch (err: any) {

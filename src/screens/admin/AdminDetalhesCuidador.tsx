@@ -18,6 +18,22 @@ import { useTema } from "../../context/ThemeContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../config/api";
 import { normalizarFotoUrl } from "../../utils/autenticacao";
+import { validarCPF } from "../../ferramentas/mascaras";
+
+// linha de verificacao automatica (apoio pro admin decidir; nao confirma identidade real)
+function VerifRow({ ok, label, detalhe, cores }: { ok: boolean; label: string; detalhe: string; cores: Record<string, string> }) {
+  return (
+    <View style={styles.verifRow}>
+      <Ionicons
+        name={ok ? "checkmark-circle" : "alert-circle"}
+        size={18}
+        color={ok ? cores.success : cores.danger}
+      />
+      <Text style={[styles.verifLabel, { color: cores.text }]}>{label}</Text>
+      <Text style={[styles.verifDetalhe, { color: ok ? cores.success : cores.danger }]}>{detalhe}</Text>
+    </View>
+  );
+}
 
 type Perfil = {
   usuario_id: number;
@@ -129,6 +145,19 @@ export default function AdminDetalhesCuidador({ route, navigation }: any) {
   const foto = normalizarFotoUrl(perfil.foto_url);
   const jaDecidido = perfil.status !== "pendente";
 
+  // verificacoes automaticas dos dados (formato/preenchimento)
+  const telDigitos = (perfil.telefone || "").replace(/\D/g, "");
+  const checks = {
+    cpf: !!perfil.cpf && validarCPF(perfil.cpf),
+    cpfDetalhe: !perfil.cpf ? "não informado" : validarCPF(perfil.cpf) ? "válido" : "inválido",
+    telefone: telDigitos.length >= 10,
+    foto: !!perfil.foto_url,
+    local: !!perfil.cidade,
+    bio: !!(perfil.bio && perfil.bio.trim()),
+    especialidades: Array.isArray(perfil.especialidades) && perfil.especialidades.length > 0,
+  };
+  const tudoOk = checks.cpf && checks.telefone && checks.foto && checks.local && checks.bio && checks.especialidades;
+
   const badgeCor = perfil.status === "aprovado" ? cores.success : perfil.status === "rejeitado" ? cores.danger : cores.warning;
   const badgeLabel = perfil.status === "aprovado" ? "Aprovado" : perfil.status === "rejeitado" ? "Rejeitado" : "Pendente";
 
@@ -189,6 +218,26 @@ export default function AdminDetalhesCuidador({ route, navigation }: any) {
             </View>
           </View>
         )}
+
+        <View style={[styles.card, { backgroundColor: cores.card, borderColor: tudoOk ? cores.success : cores.warning }]}>
+          <View style={styles.verifHeader}>
+            <Text style={[styles.secao, { color: cores.primary, marginBottom: 0 }]}>Verificação dos dados</Text>
+            <View style={[styles.verifTag, { backgroundColor: (tudoOk ? cores.success : cores.warning) + "22" }]}>
+              <Text style={[styles.verifTagTxt, { color: tudoOk ? cores.success : cores.warning }]}>
+                {tudoOk ? "Completo" : "Revisar"}
+              </Text>
+            </View>
+          </View>
+          <VerifRow ok={checks.cpf} label="CPF" detalhe={checks.cpfDetalhe} cores={cores} />
+          <VerifRow ok={checks.telefone} label="Telefone" detalhe={checks.telefone ? "completo" : "incompleto"} cores={cores} />
+          <VerifRow ok={checks.local} label="Localização" detalhe={checks.local ? "informada" : "ausente"} cores={cores} />
+          <VerifRow ok={checks.foto} label="Foto de perfil" detalhe={checks.foto ? "enviada" : "ausente"} cores={cores} />
+          <VerifRow ok={checks.bio} label="Apresentação" detalhe={checks.bio ? "preenchida" : "ausente"} cores={cores} />
+          <VerifRow ok={checks.especialidades} label="Especialidades" detalhe={checks.especialidades ? "informadas" : "ausente"} cores={cores} />
+          <Text style={[styles.verifNota, { color: cores.muted }]}>
+            Conferência de formato/preenchimento — não confirma a identidade real.
+          </Text>
+        </View>
 
         {perfil.status === "rejeitado" && perfil.motivo_rejeicao && (
           <View style={[styles.card, { backgroundColor: cores.danger + "15", borderColor: cores.danger }]}>
@@ -288,6 +337,13 @@ const styles = StyleSheet.create({
   headerTitle: { flex: 1, fontSize: 18, fontWeight: "700" },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   statusBadgeText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+  verifHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  verifTag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
+  verifTagTxt: { fontSize: 11, fontWeight: "700" },
+  verifRow: { flexDirection: "row", alignItems: "center", paddingVertical: 5, gap: 8 },
+  verifLabel: { flex: 1, fontSize: 14 },
+  verifDetalhe: { fontSize: 13, fontWeight: "600" },
+  verifNota: { fontSize: 11, marginTop: 8, fontStyle: "italic" },
   content: { padding: 16, gap: 12 },
   avatarSection: { alignItems: "center", paddingVertical: 16 },
   avatar: { width: 90, height: 90, borderRadius: 45, marginBottom: 12 },

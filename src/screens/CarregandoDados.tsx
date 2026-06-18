@@ -121,6 +121,21 @@ export default function CarregandoDados({ navigation }: any) {
 
       await obterERegistrarPushToken();
       await configurarCanal();
+
+      // cuidador so acessa as abas se o perfil estiver aprovado pelo admin
+      if (meta.tipo === "cuidador") {
+        try {
+          const perfilRes = await api.get("/cuidador/perfil");
+          if (perfilRes.data?.status !== "aprovado") {
+            navigation.reset({ index: 0, routes: [{ name: "CuidadorEmAnalise" }] });
+            return;
+          }
+        } catch {
+          navigation.reset({ index: 0, routes: [{ name: "CuidadorEmAnalise" }] });
+          return;
+        }
+      }
+
       navigation.reset({ index: 0, routes: [{ name: "Abas" }] });
     } catch {
       setMessage("Erro ao carregar. Tente novamente.");
