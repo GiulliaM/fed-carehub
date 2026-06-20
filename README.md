@@ -5,7 +5,7 @@ Atende três perfis — **familiar**, **cuidador** e **administrador** — com r
 medicamentos), diário de cuidados, histórico médico, vínculos por código, busca de cuidadores
 e painel administrativo.
 
-> API correspondente: **[bff-carehub](../bff-carehub)** (Node + Express + MySQL).
+> API correspondente: **[bff-carehub](https://github.com/GiulliaM/bff-carehub)** (Node + Express + MySQL).
 
 ---
 
