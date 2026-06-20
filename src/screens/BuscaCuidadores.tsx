@@ -8,7 +8,8 @@ StyleSheet,
   Alert,
   Linking,
   Image,
-  RefreshControl
+  RefreshControl,
+  ScrollView
 } from "react-native";
 import { Text } from "../components/Text";
 import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
@@ -17,6 +18,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../context/ThemeContext";
 import api from "../config/api";
+
+// mesma lista canonica usada no cadastro do cuidador (PerfilCuidador)
+const ESPECIALIDADES_FILTRO = [
+  "Alzheimer",
+  "Mobilidade Reduzida",
+  "Pós-operatório",
+  "Técnico de Enfermagem",
+  "Cuidados Paliativos",
+  "Diabetes",
+  "Hipertensão",
+  "Idosos",
+  "Acompanhamento Domiciliar",
+];
 
 type CuidadorItem = {
   id: number;
@@ -157,6 +171,12 @@ export default function BuscaCuidadores({ navigation }: any) {
   };
 
   const onChangeEspecialidade = (v: string) => { setEspecialidade(v); agendarBusca(v, cidade, bairro); };
+  const toggleEspecialidade = (esp: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const novo = especialidade.trim().toLowerCase() === esp.toLowerCase() ? "" : esp;
+    setEspecialidade(novo);
+    buscar(novo, cidade, bairro);
+  };
   const onChangeCidade = (v: string) => { setCidade(v); agendarBusca(especialidade, v, bairro); };
   const onChangeBairro = (v: string) => { setBairro(v); agendarBusca(especialidade, cidade, v); };
 
@@ -183,6 +203,31 @@ export default function BuscaCuidadores({ navigation }: any) {
           value={especialidade}
           onChangeText={onChangeEspecialidade}
         />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipsRow}
+          keyboardShouldPersistTaps="handled"
+        >
+          {ESPECIALIDADES_FILTRO.map((esp) => {
+            const ativo = especialidade.trim().toLowerCase() === esp.toLowerCase();
+            return (
+              <TouchableOpacity
+                key={esp}
+                onPress={() => toggleEspecialidade(esp)}
+                style={[
+                  styles.chip,
+                  {
+                    backgroundColor: ativo ? cores.primary : "transparent",
+                    borderColor: ativo ? cores.primary : cores.muted,
+                  },
+                ]}
+              >
+                <Text style={[styles.chipText, { color: ativo ? "#fff" : cores.text }]}>{esp}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
         <TextInput
           style={[styles.input, { color: cores.text, borderColor: cores.muted }]}
           placeholder="Cidade"
@@ -262,6 +307,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 12,
   },
+  chipsRow: { flexDirection: "row", gap: 8, paddingVertical: 2, paddingRight: 4, marginBottom: 12 },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  chipText: { fontSize: 13, fontWeight: "600" },
   btnBuscar: {
     flexDirection: "row",
     alignItems: "center",

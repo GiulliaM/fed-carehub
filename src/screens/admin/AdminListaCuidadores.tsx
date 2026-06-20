@@ -82,6 +82,11 @@ export default function AdminListaCuidadores({ navigation }: any) {
     <SafeAreaView style={[styles.safe, { backgroundColor: cores.background }]}>
       <View style={[styles.header, { borderBottomColor: cores.border }]}>
         <Text style={[styles.titulo, { color: cores.primary }]}>Cuidadores</Text>
+        {!carregando && (
+          <Text style={[styles.contador, { color: cores.muted }]}>
+            {lista.length} registro{lista.length !== 1 ? "s" : ""}
+          </Text>
+        )}
       </View>
 
       <ScrollView
@@ -186,11 +191,15 @@ export default function AdminListaCuidadores({ navigation }: any) {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
   },
   titulo: { fontSize: 22, fontWeight: "700" },
+  contador: { fontSize: 13 },
   filtrosScroll: { borderBottomWidth: 1, maxHeight: 56 },
   filtrosContent: { paddingHorizontal: 16, paddingVertical: 10, gap: 8, flexDirection: "row" },
   chip: {

@@ -20,7 +20,7 @@ import api from "../../config/api";
 import { normalizarFotoUrl } from "../../utils/autenticacao";
 import { validarCPF } from "../../ferramentas/mascaras";
 
-// linha de verificacao automatica (apoio pro admin decidir; nao confirma identidade real)
+// linha de verificacao automatica (apoio pro admin decidir)
 function VerifRow({ ok, label, detalhe, cores }: { ok: boolean; label: string; detalhe: string; cores: Record<string, string> }) {
   return (
     <View style={styles.verifRow}>
@@ -235,7 +235,7 @@ export default function AdminDetalhesCuidador({ route, navigation }: any) {
           <VerifRow ok={checks.bio} label="Apresentação" detalhe={checks.bio ? "preenchida" : "ausente"} cores={cores} />
           <VerifRow ok={checks.especialidades} label="Especialidades" detalhe={checks.especialidades ? "informadas" : "ausente"} cores={cores} />
           <Text style={[styles.verifNota, { color: cores.muted }]}>
-            Conferência de formato/preenchimento — não confirma a identidade real.
+            Conferência de formato e preenchimento dos dados informados.
           </Text>
         </View>
 

@@ -49,7 +49,7 @@ export default function AbasAdmin() {
       >
         <Tab.Screen name="Dashboard" component={AdminDashboard} options={{ tabBarLabel: "Dashboard" }} />
         <Tab.Screen name="Cuidadores" component={AdminListaCuidadores} options={{ tabBarLabel: "Cuidadores" }} />
-        <Tab.Screen name="Usuarios" component={AdminListaUsuarios} options={{ tabBarLabel: "Usuários" }} />
+        <Tab.Screen name="Usuarios" component={AdminListaUsuarios} options={{ tabBarLabel: "Familiares" }} />
       </Tab.Navigator>
     </View>
   );

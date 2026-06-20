@@ -35,6 +35,8 @@ export default function Home({ navigation }: any) {
   const [pacienteAtivo, setPacienteAtivo] = useState<any>(null);
   const [carregando, setCarregando] = useState(true);
   const [membrosGrupo, setMembrosGrupo] = useState<any[]>([]);
+  const [historicoVazio, setHistoricoVazio] = useState(false);
+  const [perfilCuid, setPerfilCuid] = useState<any>(null);
 
   const [artigos, setArtigos] = useState<any[]>([]);
 
@@ -56,10 +58,8 @@ export default function Home({ navigation }: any) {
     setCarregando(true);
     try {
       const rawUser = await AsyncStorage.getItem("usuario");
-      if (rawUser) {
-        const userData = JSON.parse(rawUser);
-        setUser(userData);
-      }
+      const userData = rawUser ? JSON.parse(rawUser) : null;
+      if (userData) setUser(userData);
 
       const [listaPacientes, resArtigos] = await Promise.all([
         api.get("/pacientes"),
@@ -68,6 +68,18 @@ export default function Home({ navigation }: any) {
       const lista = Array.isArray(listaPacientes.data) ? listaPacientes.data : [];
       setPacientes(lista);
       setArtigos(Array.isArray(resArtigos.data) ? resArtigos.data.slice(0, 10) : []);
+
+      // perfil profissional do cuidador (para os lembretes)
+      if (userData?.tipo === "cuidador") {
+        try {
+          const rp = await api.get("/cuidador/perfil");
+          setPerfilCuid(rp.data || null);
+        } catch {
+          setPerfilCuid(null);
+        }
+      } else {
+        setPerfilCuid(null);
+      }
 
       if (lista.length > 0) {
         const rawPac = await AsyncStorage.getItem("paciente_ativo_id");
@@ -125,6 +137,21 @@ export default function Home({ navigation }: any) {
         setMembrosGrupo(Array.isArray(membros.data) ? membros.data : []);
       } catch {
         setMembrosGrupo([]);
+      }
+
+      try {
+        const hist = await api.get(`/pacientes/${pacienteAtivo.paciente_id}/historico-medico`);
+        const h: any = hist.data || {};
+        const campos = [
+          h.condicoes_cronicas, h.alergias, h.historico_cirurgico, h.tipo_sanguineo,
+          h.plano_saude_nome, h.plano_saude_numero, h.medico_responsavel,
+          h.telefone_medico, h.capacidade_funcional, h.observacoes_gerais,
+        ];
+        const temContato = Array.isArray(h.contatos_emergencia) && h.contatos_emergencia.length > 0;
+        const algumPreenchido = campos.some((c) => c != null && String(c).trim() !== "") || temContato;
+        setHistoricoVazio(!algumPreenchido);
+      } catch {
+        setHistoricoVazio(false);
       }
     } catch {
       setResumo({
@@ -184,6 +211,101 @@ export default function Home({ navigation }: any) {
     setRefreshing(false);
   }, []);
 
+  // Lembretes de dados pendentes (familiar), em ordem de importancia.
+  // Exibimos no maximo 2 por vez pra nao poluir a Home.
+  const lembretes: { key: string; icon: any; titulo: string; texto: string; onPress: () => void }[] = [];
+  if (user?.tipo !== "cuidador") {
+    if (pacientes.length === 0) {
+      lembretes.push({
+        key: "paciente",
+        icon: "alert-circle",
+        titulo: `Cadastre seu ${termo.toLowerCase()}`,
+        texto: "Você ainda não cadastrou. Toque para começar.",
+        onPress: () => navigation.navigate("CadastrarPaciente"),
+      });
+    } else if (pacienteAtivo) {
+      if (historicoVazio) {
+        lembretes.push({
+          key: "historico",
+          icon: "medkit-outline",
+          titulo: "Complete o histórico médico",
+          texto: `Adicione o histórico de ${pacienteAtivo.nome}.`,
+          onPress: () => navigation.navigate("HistoricoMedico", { paciente: pacienteAtivo }),
+        });
+      }
+      if (!user?.telefone || !String(user.telefone).trim()) {
+        lembretes.push({
+          key: "telefone",
+          icon: "call-outline",
+          titulo: "Adicione seu telefone",
+          texto: "Mantenha seu contato atualizado no perfil.",
+          onPress: () => navigation.navigate("EditarUsuario", { user }),
+        });
+      }
+      if (!pacienteAtivo.foto_url) {
+        lembretes.push({
+          key: "foto",
+          icon: "image-outline",
+          titulo: `Adicione uma foto de ${pacienteAtivo.nome}`,
+          texto: "Ajuda na identificação do perfil.",
+          onPress: () => navigation.navigate("EditarPaciente", { paciente: pacienteAtivo }),
+        });
+      }
+      if (!pacienteAtivo.data_nascimento) {
+        lembretes.push({
+          key: "nascimento",
+          icon: "calendar-outline",
+          titulo: "Informe a data de nascimento",
+          texto: `Complete os dados de ${pacienteAtivo.nome}.`,
+          onPress: () => navigation.navigate("EditarPaciente", { paciente: pacienteAtivo }),
+        });
+      }
+    }
+  }
+  if (user?.tipo === "cuidador") {
+    if (pacientes.length === 0) {
+      lembretes.push({
+        key: "vincular",
+        icon: "link-outline",
+        titulo: "Vincule um paciente",
+        texto: "Peça o código de 6 dígitos ao familiar para começar.",
+        onPress: () => navigation.navigate("MeusPacientes", { abrirCodigo: true }),
+      });
+    }
+    if (perfilCuid) {
+      const qtdEsp = Array.isArray(perfilCuid.especialidades) ? perfilCuid.especialidades.length : 0;
+      if (qtdEsp === 0) {
+        lembretes.push({
+          key: "especialidades",
+          icon: "ribbon-outline",
+          titulo: "Adicione suas especialidades",
+          texto: "Ajuda as famílias a encontrarem você na busca.",
+          onPress: () => navigation.navigate("PerfilCuidador"),
+        });
+      }
+      if (!perfilCuid.bio || !String(perfilCuid.bio).trim()) {
+        lembretes.push({
+          key: "bio",
+          icon: "create-outline",
+          titulo: "Escreva sua apresentação",
+          texto: "Uma bio aumenta a confiança das famílias.",
+          onPress: () => navigation.navigate("PerfilCuidador"),
+        });
+      }
+      if (perfilCuid.disponivel_busca === 0) {
+        lembretes.push({
+          key: "disponivel",
+          icon: "eye-off-outline",
+          titulo: "Você está oculto na busca",
+          texto: "Ative a disponibilidade para receber contatos.",
+          onPress: () => navigation.navigate("PerfilCuidador"),
+        });
+      }
+    }
+  }
+
+  const lembretesVisiveis = lembretes.slice(0, 2);
+
   return (
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: cores.background }]}
@@ -237,6 +359,26 @@ export default function Home({ navigation }: any) {
                 />
               </TouchableOpacity>
             </View>
+
+            {/* Lembretes de dados pendentes (familiar) */}
+            {lembretesVisiveis.map((l) => (
+              <TouchableOpacity
+                key={l.key}
+                style={[styles.lembrete, { backgroundColor: cores.primary + "12", borderColor: cores.primary + "40" }]}
+                onPress={l.onPress}
+              >
+                <Ionicons name={l.icon} size={24} color={cores.primary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.lembreteTitulo, { color: cores.primary, fontSize: tf(14) }]} numberOfLines={1}>
+                    {l.titulo}
+                  </Text>
+                  <Text style={[styles.lembreteTexto, { color: cores.muted, fontSize: tf(12) }]} numberOfLines={2}>
+                    {l.texto}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={cores.primary} />
+              </TouchableOpacity>
+            ))}
 
             {/* Seletor de paciente */}
             {pacientes.length > 1 && (
@@ -478,18 +620,18 @@ export default function Home({ navigation }: any) {
             </Text>
 
             <View style={styles.quickGrid}>
-              {[
-                { name: "Tarefas", icon: "checkbox-outline" as const, screen: "Tarefas" },
-                { name: "Medicamentos", icon: "medical-outline" as const, screen: "Medicamentos" },
-                { name: "Diario", icon: "book-outline" as const, screen: "Diario" },
-                ...(user?.tipo !== "cuidador"
-                  ? [{ name: "Dicas", icon: "bulb-outline" as const, screen: "Dicas" }]
-                  : []),
-              ].map((item) => (
+              {([
+                { name: "Tarefas", icon: "checkbox-outline", screen: "Tarefas" },
+                { name: "Medicamentos", icon: "medical-outline", screen: "Medicamentos" },
+                { name: "Diario", icon: "book-outline", screen: "Diario" },
+                ...(user?.tipo === "cuidador"
+                  ? [{ name: "Vincular paciente", icon: "link-outline", screen: "MeusPacientes", params: { abrirCodigo: true } }]
+                  : [{ name: "Dicas", icon: "bulb-outline", screen: "Dicas" }]),
+              ] as { name: string; icon: any; screen: string; params?: any }[]).map((item) => (
                 <TouchableOpacity
-                  key={item.screen}
+                  key={item.name}
                   style={[styles.quickCard, { backgroundColor: cores.card, borderColor: cores.border }]}
-                  onPress={() => navigation.navigate(item.screen)}
+                  onPress={() => navigation.navigate(item.screen, item.params)}
                 >
                   <Ionicons name={item.icon} size={28} color={cores.primary} />
                   <Text style={[styles.quickText, { color: cores.text, fontSize: tf(13) }]}>
@@ -499,31 +641,25 @@ export default function Home({ navigation }: any) {
               ))}
             </View>
 
-            {/* Botoes vincular/cadastrar */}
-            {pacienteAtivo && (
+            {/* Botoes vincular/cadastrar (familiar) — o cuidador acessa "Vincular paciente" pela grade acima */}
+            {pacienteAtivo && user?.tipo !== "cuidador" && (
               <View style={styles.linkRow}>
-                {user?.tipo !== "cuidador" && (
-                  <TouchableOpacity
-                    style={[styles.linkBtn, { backgroundColor: cores.card, borderColor: cores.border }]}
-                    onPress={() => navigation.navigate("CadastrarPaciente")}
-                  >
-                    <Ionicons name="add-circle-outline" size={20} color={cores.primary} />
-                    <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]}>
-                      Cadastrar {termo.toLowerCase()}
-                    </Text>
-                  </TouchableOpacity>
-                )}
                 <TouchableOpacity
                   style={[styles.linkBtn, { backgroundColor: cores.card, borderColor: cores.border }]}
-                  onPress={() =>
-                    user?.tipo === "cuidador"
-                      ? navigation.navigate("MeusPacientes", { abrirCodigo: true })
-                      : navigation.navigate("VincularCuidador")
-                  }
+                  onPress={() => navigation.navigate("CadastrarPaciente")}
+                >
+                  <Ionicons name="add-circle-outline" size={20} color={cores.primary} />
+                  <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]} numberOfLines={1}>
+                    Cadastrar {termo.toLowerCase()}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.linkBtn, { backgroundColor: cores.card, borderColor: cores.border }]}
+                  onPress={() => navigation.navigate("VincularCuidador")}
                 >
                   <Ionicons name="link-outline" size={20} color={cores.primary} />
                   <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]}>
-                    {user?.tipo === "cuidador" ? "Vincular paciente" : "Vincular pessoa"}
+                    Vincular pessoa
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -539,6 +675,17 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   container: { padding: 16, paddingBottom: 32 },
   header: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
+  lembrete: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  lembreteTitulo: { fontWeight: "700" },
+  lembreteTexto: { marginTop: 2 },
   welcome: { fontWeight: "700" },
   welcomeSubtitle: { marginTop: 2 },
   settingsBtn: {
@@ -630,12 +777,15 @@ const styles = StyleSheet.create({
   quickCard: {
     width: "47.5%",
     alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 18,
+    paddingHorizontal: 8,
+    minHeight: 96,
     borderRadius: 12,
     borderWidth: 1,
     elevation: 1,
   },
-  quickText: { marginTop: 6, fontWeight: "600" },
+  quickText: { marginTop: 6, fontWeight: "600", textAlign: "center" },
   artigoCard: {
     width: 150,
     borderRadius: 12,
@@ -661,10 +811,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     borderRadius: 10,
     borderWidth: 1,
-    gap: 6,
+    gap: 8,
   },
-  linkBtnText: { fontWeight: "600" },
+  linkBtnText: { fontWeight: "600", flexShrink: 1 },
 });

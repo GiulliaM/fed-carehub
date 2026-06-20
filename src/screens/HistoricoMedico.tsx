@@ -19,6 +19,7 @@ import { useTema } from "../context/ThemeContext";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../config/api";
+import { mascaraTelefone } from "../ferramentas/mascaras";
 
 type ContatoEmergencia = { nome: string; parentesco: string; telefone: string };
 
@@ -113,7 +114,7 @@ export default function HistoricoMedico({ route, navigation }: any) {
       setPlanoSaudeNome(h.plano_saude_nome || "");
       setPlanoSaudeNumero(h.plano_saude_numero || "");
       setMedicoResponsavel(h.medico_responsavel || "");
-      setTelefoneMedico(h.telefone_medico || "");
+      setTelefoneMedico(mascaraTelefone(h.telefone_medico || ""));
       setCapacidadeFuncional(h.capacidade_funcional || "");
       setObservacoesGerais(h.observacoes_gerais || "");
       const contatos = Array.isArray(h.contatos_emergencia) ? h.contatos_emergencia : [];
@@ -122,7 +123,7 @@ export default function HistoricoMedico({ route, navigation }: any) {
           ? contatos.map((c: any) => ({
               nome: c.nome || "",
               parentesco: c.parentesco || "",
-              telefone: c.telefone || "",
+              telefone: mascaraTelefone(c.telefone || ""),
             }))
           : [{ nome: "", parentesco: "", telefone: "" }]
       );
@@ -332,7 +333,7 @@ export default function HistoricoMedico({ route, navigation }: any) {
               <Campo label="Plano de saúde (nome)" value={planoSaudeNome} onChange={setPlanoSaudeNome} cores={cores} />
               <Campo label="Número da carteirinha" value={planoSaudeNumero} onChange={setPlanoSaudeNumero} cores={cores} />
               <Campo label="Médico responsável" value={medicoResponsavel} onChange={setMedicoResponsavel} cores={cores} />
-              <Campo label="Telefone do médico" value={telefoneMedico} onChange={setTelefoneMedico} cores={cores} />
+              <Campo label="Telefone do médico" value={telefoneMedico} onChange={setTelefoneMedico} cores={cores} keyboardType="phone-pad" transformar={mascaraTelefone} />
               <Campo label="Capacidade funcional (ADLs)" value={capacidadeFuncional} onChange={setCapacidadeFuncional} cores={cores} multiline />
               <Campo label="Observações gerais" value={observacoesGerais} onChange={setObservacoesGerais} cores={cores} multiline />
 
@@ -358,7 +359,7 @@ export default function HistoricoMedico({ route, navigation }: any) {
                     placeholder="Telefone"
                     placeholderTextColor={cores.muted}
                     value={c.telefone}
-                    onChangeText={(v) => atualizarContato(i, "telefone", v)}
+                    onChangeText={(v) => atualizarContato(i, "telefone", mascaraTelefone(v))}
                     keyboardType="phone-pad"
                   />
                   <TouchableOpacity onPress={() => removerContato(i)} style={styles.removeBtn}>
@@ -406,6 +407,8 @@ function Campo({
   cores,
   multiline,
   placeholder,
+  keyboardType,
+  transformar,
 }: {
   label: string;
   value: string;
@@ -413,6 +416,8 @@ function Campo({
   cores: Record<string, string>;
   multiline?: boolean;
   placeholder?: string;
+  keyboardType?: "default" | "phone-pad" | "number-pad";
+  transformar?: (v: string) => string;
 }) {
   return (
     <View style={styles.campo}>
@@ -426,9 +431,10 @@ function Campo({
         placeholder={placeholder || label}
         placeholderTextColor={cores.muted}
         value={value}
-        onChangeText={onChange}
+        onChangeText={(v) => onChange(transformar ? transformar(v) : v)}
         multiline={multiline}
         numberOfLines={multiline ? 3 : 1}
+        keyboardType={keyboardType || "default"}
       />
     </View>
   );

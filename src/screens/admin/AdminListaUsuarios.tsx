@@ -6,48 +6,46 @@ import {
   ActivityIndicator,
   Image,
   RefreshControl,
-  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Text } from "../../components/Text";
-import { AnimatedPressable as TouchableOpacity } from "../../components/AnimatedPressable";
 import { useTema } from "../../context/ThemeContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../config/api";
 import { normalizarFotoUrl } from "../../utils/autenticacao";
 
-type Usuario = {
+type Paciente = {
+  paciente_id: number;
+  nome: string;
+  idade: number | null;
+  genero: string | null;
+  parentesco: string | null;
+  papel: string | null;
+};
+
+type Familiar = {
   usuario_id: number;
   nome: string;
   email: string;
-  tipo: "familiar" | "cuidador";
   telefone: string | null;
   foto_url: string | null;
   created_at: string;
+  pacientes: Paciente[];
 };
-
-type FiltroTipo = "todos" | "familiar" | "cuidador";
-
-const FILTROS: { label: string; valor: FiltroTipo }[] = [
-  { label: "Todos", valor: "todos" },
-  { label: "Familiares", valor: "familiar" },
-  { label: "Cuidadores", valor: "cuidador" },
-];
 
 export default function AdminListaUsuarios() {
   const { cores } = useTema();
   const { showToast } = useToast();
-  const [filtro, setFiltro] = useState<FiltroTipo>("todos");
-  const [lista, setLista] = useState<Usuario[]>([]);
+  const [lista, setLista] = useState<Familiar[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const carregar = useCallback(async (f: FiltroTipo = filtro) => {
+  // Cuidadores tem aba propria; aqui mostramos os familiares e os pacientes vinculados a eles.
+  const carregar = useCallback(async () => {
     try {
-      const query = f === "todos" ? "" : `?tipo=${f}`;
-      const res = await api.get(`/admin/usuarios${query}`);
+      const res = await api.get("/admin/familiares");
       setLista(Array.isArray(res.data) ? res.data : []);
     } catch {
       showToast("Erro ao carregar usuários.", "error");
@@ -55,56 +53,31 @@ export default function AdminListaUsuarios() {
       setCarregando(false);
       setRefreshing(false);
     }
-  }, [filtro]);
+  }, []);
 
-  useFocusEffect(useCallback(() => { setCarregando(true); carregar(filtro); }, [filtro]));
+  useFocusEffect(useCallback(() => { setCarregando(true); carregar(); }, [carregar]));
 
-  const onFiltro = (f: FiltroTipo) => {
-    setFiltro(f);
-    setCarregando(true);
-    carregar(f);
-  };
+  const onRefresh = () => { setRefreshing(true); carregar(); };
 
-  const onRefresh = () => { setRefreshing(true); carregar(filtro); };
-
-  const badgeTipo = (tipo: string) => {
-    if (tipo === "familiar") return { bg: cores.accent, label: "Familiar" };
-    return { bg: cores.primary, label: "Cuidador" };
+  const detalhePaciente = (p: Paciente) => {
+    const partes = [
+      p.parentesco,
+      p.idade != null ? `${p.idade} anos` : null,
+      p.genero,
+    ].filter(Boolean);
+    return partes.join(" • ");
   };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: cores.background }]}>
       <View style={[styles.header, { borderBottomColor: cores.border }]}>
-        <Text style={[styles.titulo, { color: cores.primary }]}>Usuários</Text>
+        <Text style={[styles.titulo, { color: cores.primary }]}>Familiares</Text>
         {!carregando && (
-          <Text style={[styles.contador, { color: cores.muted }]}>{lista.length} registros</Text>
+          <Text style={[styles.contador, { color: cores.muted }]}>
+            {lista.length} familiar{lista.length !== 1 ? "es" : ""}
+          </Text>
         )}
       </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={[styles.filtrosScroll, { borderBottomColor: cores.border }]}
-        contentContainerStyle={styles.filtrosContent}
-      >
-        {FILTROS.map((f) => (
-          <TouchableOpacity
-            key={f.valor}
-            style={[
-              styles.chip,
-              {
-                backgroundColor: filtro === f.valor ? cores.primary : cores.card,
-                borderColor: filtro === f.valor ? cores.primary : cores.border,
-              },
-            ]}
-            onPress={() => onFiltro(f.valor)}
-          >
-            <Text style={[styles.chipText, { color: filtro === f.valor ? "#fff" : cores.muted }]}>
-              {f.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
 
       {carregando ? (
         <View style={styles.loading}>
@@ -113,7 +86,7 @@ export default function AdminListaUsuarios() {
       ) : lista.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="people-outline" size={64} color={cores.muted} />
-          <Text style={[styles.emptyText, { color: cores.muted }]}>Nenhum usuário encontrado.</Text>
+          <Text style={[styles.emptyText, { color: cores.muted }]}>Nenhum familiar encontrado.</Text>
         </View>
       ) : (
         <FlatList
@@ -124,7 +97,6 @@ export default function AdminListaUsuarios() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[cores.primary]} tintColor={cores.primary} />
           }
           renderItem={({ item }) => {
-            const badge = badgeTipo(item.tipo);
             const foto = normalizarFotoUrl(item.foto_url);
             return (
               <View style={[styles.card, { backgroundColor: cores.card, borderColor: cores.border }]}>
@@ -144,13 +116,41 @@ export default function AdminListaUsuarios() {
                     )}
                   </View>
                   <View style={{ alignItems: "flex-end", gap: 6 }}>
-                    <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-                      <Text style={styles.badgeText}>{badge.label}</Text>
+                    <View style={[styles.badge, { backgroundColor: cores.accent }]}>
+                      <Text style={styles.badgeText}>Familiar</Text>
                     </View>
                     <Text style={[styles.data, { color: cores.muted }]}>
                       {new Date(item.created_at).toLocaleDateString("pt-BR")}
                     </Text>
                   </View>
+                </View>
+
+                <View style={[styles.pacientesBox, { borderTopColor: cores.border }]}>
+                  <Text style={[styles.pacientesTitulo, { color: cores.muted }]}>
+                    Pacientes vinculados ({item.pacientes.length})
+                  </Text>
+                  {item.pacientes.length === 0 ? (
+                    <Text style={[styles.pacienteVazio, { color: cores.muted }]}>
+                      Nenhum paciente vinculado.
+                    </Text>
+                  ) : (
+                    item.pacientes.map((p) => {
+                      const detalhe = detalhePaciente(p);
+                      return (
+                        <View key={p.paciente_id} style={styles.pacienteRow}>
+                          <Ionicons name="heart-outline" size={16} color={cores.primary} />
+                          <Text style={[styles.pacienteNome, { color: cores.text }]} numberOfLines={1}>
+                            {p.nome}
+                          </Text>
+                          {!!detalhe && (
+                            <Text style={[styles.pacienteDetalhe, { color: cores.muted }]} numberOfLines={1}>
+                              {detalhe}
+                            </Text>
+                          )}
+                        </View>
+                      );
+                    })
+                  )}
                 </View>
               </View>
             );
@@ -173,10 +173,6 @@ const styles = StyleSheet.create({
   },
   titulo: { fontSize: 22, fontWeight: "700" },
   contador: { fontSize: 13 },
-  filtrosScroll: { borderBottomWidth: 1, maxHeight: 56 },
-  filtrosContent: { paddingHorizontal: 16, paddingVertical: 10, gap: 8, flexDirection: "row" },
-  chip: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
-  chipText: { fontSize: 13, fontWeight: "600" },
   loading: { flex: 1, justifyContent: "center", alignItems: "center" },
   empty: { flex: 1, justifyContent: "center", alignItems: "center", padding: 32 },
   emptyText: { textAlign: "center", fontSize: 16, marginTop: 16 },
@@ -200,4 +196,10 @@ const styles = StyleSheet.create({
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
   badgeText: { color: "#fff", fontSize: 11, fontWeight: "700" },
   data: { fontSize: 11 },
+  pacientesBox: { marginTop: 10, paddingTop: 10, borderTopWidth: 1 },
+  pacientesTitulo: { fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 6 },
+  pacienteVazio: { fontSize: 12, fontStyle: "italic" },
+  pacienteRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 3 },
+  pacienteNome: { fontSize: 13, fontWeight: "600", flexShrink: 1 },
+  pacienteDetalhe: { fontSize: 12, flexShrink: 1 },
 });

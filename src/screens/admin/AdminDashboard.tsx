@@ -20,6 +20,7 @@ type Stats = {
   total_usuarios: number;
   total_familiares: number;
   total_cuidadores: number;
+  total_pacientes: number;
   pendentes: number;
   aprovados: number;
   rejeitados: number;
@@ -90,11 +91,20 @@ export default function AdminDashboard({ navigation }: any) {
               cor={cores.accent}
               cores={cores}
             />
+          </View>
+          <View style={styles.row}>
             <CardMetrica
               label="Cuidadores"
               valor={stats?.total_cuidadores ?? 0}
               icone="user-check"
               cor={cores.primary}
+              cores={cores}
+            />
+            <CardMetrica
+              label="Pacientes"
+              valor={stats?.total_pacientes ?? 0}
+              icone="user"
+              cor={cores.success}
               cores={cores}
             />
           </View>
