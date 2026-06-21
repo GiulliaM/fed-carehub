@@ -8,8 +8,8 @@ StyleSheet,
   KeyboardAvoidingView,
   Platform
 } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { Text } from "../components/Text";
-import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
