@@ -242,15 +242,6 @@ export default function Home({ navigation }: any) {
           onPress: () => navigation.navigate("EditarUsuario", { user }),
         });
       }
-      if (!pacienteAtivo.foto_url) {
-        lembretes.push({
-          key: "foto",
-          icon: "image-outline",
-          titulo: `Adicione uma foto de ${pacienteAtivo.nome}`,
-          texto: "Ajuda na identificação do perfil.",
-          onPress: () => navigation.navigate("EditarPaciente", { paciente: pacienteAtivo }),
-        });
-      }
       if (!pacienteAtivo.data_nascimento) {
         lembretes.push({
           key: "nascimento",
@@ -649,7 +640,7 @@ export default function Home({ navigation }: any) {
                   onPress={() => navigation.navigate("CadastrarPaciente")}
                 >
                   <Ionicons name="add-circle-outline" size={20} color={cores.primary} />
-                  <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]} numberOfLines={1}>
+                  <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]} numberOfLines={2}>
                     Cadastrar {termo.toLowerCase()}
                   </Text>
                 </TouchableOpacity>
@@ -658,7 +649,7 @@ export default function Home({ navigation }: any) {
                   onPress={() => navigation.navigate("VincularCuidador")}
                 >
                   <Ionicons name="link-outline" size={20} color={cores.primary} />
-                  <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]}>
+                  <Text style={[styles.linkBtnText, { color: cores.text, fontSize: tf(13) }]} numberOfLines={2}>
                     Vincular pessoa
                   </Text>
                 </TouchableOpacity>
@@ -811,10 +802,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
     borderRadius: 10,
     borderWidth: 1,
     gap: 8,
   },
-  linkBtnText: { fontWeight: "600", flexShrink: 1 },
+  linkBtnText: { fontWeight: "600", flexShrink: 1, textAlign: "center" },
 });
