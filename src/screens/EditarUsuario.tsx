@@ -11,8 +11,8 @@ StyleSheet,
   ActivityIndicator,
   Image
 } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { Text } from "../components/Text";
-import { AnimatedPressable as TouchableOpacity } from "../components/AnimatedPressable";
 
 import { useToast } from "../context/ToastContext";
 import { SafeAreaView } from "react-native-safe-area-context";
