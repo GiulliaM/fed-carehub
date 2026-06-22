@@ -25,7 +25,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "692c08af-0a6f-4b5d-a0ae-0b519bf7564b"
+        "projectId": "c44203f8-9a6b-4054-b2e0-bbf69ab2fd74"
       }
     },
     "plugins": [
@@ -44,6 +44,6 @@
         }
       ]
     ],
-    "owner": "maria_rodrigues"
+    "owner": "giulliam"
   }
 }

@@ -15,11 +15,13 @@ import { useTema } from "../../context/ThemeContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../config/api";
 import { normalizarFotoUrl } from "../../utils/autenticacao";
+import { calcularIdade } from "../../ferramentas/logicaData";
 
 type Paciente = {
   paciente_id: number;
   nome: string;
   idade: number | null;
+  data_nascimento: string | null;
   genero: string | null;
   parentesco: string | null;
   papel: string | null;
@@ -60,9 +62,10 @@ export default function AdminListaUsuarios() {
   const onRefresh = () => { setRefreshing(true); carregar(); };
 
   const detalhePaciente = (p: Paciente) => {
+    const idadeStr = calcularIdade(p.data_nascimento, p.idade);
     const partes = [
       p.parentesco,
-      p.idade != null ? `${p.idade} anos` : null,
+      idadeStr !== "N/I" ? idadeStr : null,
       p.genero,
     ].filter(Boolean);
     return partes.join(" • ");
