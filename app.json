@@ -11,6 +11,7 @@
     "android": {
       "package": "com.giulliam.fedcarehub",
       "usesCleartextTraffic": true,
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/logo_carehub.png",
         "backgroundColor": "#122a47"

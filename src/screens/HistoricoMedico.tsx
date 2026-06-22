@@ -53,6 +53,7 @@ function formatarData(d: string | null): string {
   try {
     const dt = new Date(d);
     return dt.toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -241,7 +242,7 @@ export default function HistoricoMedico({ route, navigation }: any) {
     <SafeAreaView style={[styles.safe, { backgroundColor: cores.background }]}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={80}
       >
         <View style={styles.header}>

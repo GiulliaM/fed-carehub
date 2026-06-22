@@ -179,7 +179,7 @@ export default function PerfilCuidador({ navigation, route }: any) {
     <SafeAreaView style={[styles.safe, { backgroundColor: cores.background }]}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={80}
       >
         <View style={styles.header}>
